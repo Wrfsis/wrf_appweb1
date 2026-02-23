@@ -2720,10 +2720,12 @@ function renderDashboard() {
 }
 
 
+function renderChart() {
   const months = ['Jul','Ago','Set','Out','Nov','Dez','Jan'];
   const values = [8200, 12400, 9800, 15600, 11200, 14800, 9400];
   const max = Math.max(...values);
   const container = document.getElementById('chartBars');
+  if (!container) return;
   container.innerHTML = months.map((m, i) => {
     const h = Math.round((values[i] / max) * 140);
     return `<div class="chart-bar-wrap">
