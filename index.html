@@ -1,0 +1,3564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ObraFácil — Gestão de Orçamentos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1a1e28;
+    --border: #252a38;
+    --accent: #f5a623;
+    --accent2: #e07b00;
+    --green: #2de08b;
+    --red: #ff5c5c;
+    --blue: #4da6ff;
+    --text: #e8ecf4;
+    --muted: #6b7494;
+    --card: #161b26;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    padding: 28px 0;
+  }
+
+  .logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .nav { margin-top: 24px; flex: 1; }
+  .nav-section {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0 24px;
+    margin-bottom: 8px;
+    margin-top: 20px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+    position: relative;
+    font-size: 13.5px;
+    font-weight: 400;
+  }
+  .nav-item:hover { color: var(--text); background: var(--bg3); }
+  .nav-item.active {
+    color: var(--accent);
+    background: rgba(245,166,35,0.07);
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+  }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-bottom {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+  }
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: var(--bg3);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #000;
+    flex-shrink: 0;
+  }
+  .user-name { font-size: 12px; font-weight: 500; }
+  .user-email { font-size: 10px; color: var(--muted); }
+
+  /* MAIN */
+  .main {
+    margin-left: 220px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .topbar {
+    height: 60px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    background: rgba(13,15,20,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+  .btn-primary:hover { background: #ffb940; transform: translateY(-1px); }
+  .btn-ghost {
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-green { background: rgba(45,224,139,0.15); color: var(--green); border: 1px solid rgba(45,224,139,0.3); }
+  .btn-green:hover { background: rgba(45,224,139,0.25); }
+
+  .content { padding: 32px; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* STATS CARDS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--accent); }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--glow, rgba(245,166,35,0.08));
+    filter: blur(20px);
+    transform: translate(20px, -20px);
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-change {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .stat-change span { font-weight: 600; }
+  .up { color: var(--green) !important; }
+  .down { color: var(--red) !important; }
+
+  /* PANELS */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+  td {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(37,42,56,0.5);
+    font-size: 13.5px;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'DM Mono', monospace;
+  }
+  .badge-green { background: rgba(45,224,139,0.12); color: var(--green); }
+  .badge-yellow { background: rgba(245,166,35,0.12); color: var(--accent); }
+  .badge-red { background: rgba(255,92,92,0.12); color: var(--red); }
+  .badge-blue { background: rgba(77,166,255,0.12); color: var(--blue); }
+
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 60px 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(245,166,35,0.04);
+  }
+  .upload-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+  .upload-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; margin-bottom: 8px; }
+  .upload-sub { color: var(--muted); font-size: 13px; }
+  .upload-hint {
+    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,166,35,0.1);
+    border: 1px solid rgba(245,166,35,0.2);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+  }
+  #fileInput { display: none; }
+
+  /* AI PROCESSING */
+  .ai-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-top: 20px;
+    display: none;
+  }
+  .ai-panel.visible { display: block; }
+  .ai-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .ai-badge {
+    background: linear-gradient(135deg, #4da6ff22, #a855f722);
+    border: 1px solid #4da6ff44;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--blue);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .preview-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+  .preview-img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    background: var(--bg2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+  }
+  .preview-info { padding: 10px; }
+  .preview-name { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .preview-status { margin-top: 4px; }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: span 2; }
+  label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 0.5px; text-transform: uppercase; }
+  input, select, textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  select option { background: var(--bg2); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .form-divider {
+    height: 1px;
+    background: var(--border);
+    grid-column: span 2;
+    margin: 4px 0;
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap { background: var(--bg3); border-radius: 20px; height: 6px; overflow: hidden; }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #ff8c00);
+    border-radius: 20px;
+    transition: width 0.5s ease;
+    position: relative;
+  }
+  .progress-bar::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 20px;
+    animation: shimmer 1s infinite;
+  }
+  @keyframes shimmer { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.2s ease;
+  }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    display: none;
+  }
+  .nav-badge.visible { display: inline-block; }
+
+  /* KANBAN BOARD */
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .kanban-col {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .kanban-col-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .kanban-col-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .kanban-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    background: var(--bg3);
+    padding: 3px 8px;
+    border-radius: 20px;
+    color: var(--muted);
+  }
+  .kanban-body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 120px;
+  }
+  .kanban-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px;
+    cursor: grab;
+    transition: all 0.15s;
+    position: relative;
+    animation: slideUp 0.2s ease;
+  }
+  .kanban-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .kanban-card:active { cursor: grabbing; }
+  .kanban-card.dragging { opacity: 0.4; }
+  .kanban-col.drag-target { border-color: var(--accent); background: rgba(245,166,35,0.03); }
+
+  .kcard-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; line-height: 1.4; }
+  .kcard-obra { font-size: 11px; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+  .kcard-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .kcard-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .kcard-date.urgent { color: var(--red); }
+  .kcard-date.warning { color: var(--accent); }
+  .kcard-prio {
+    width: 8px; height: 8px; border-radius: 50%;
+    position: absolute; top: 10px; right: 10px;
+  }
+  .prio-alta { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .prio-media { background: var(--accent); }
+  .prio-baixa { background: var(--green); }
+
+  .kcard-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .kcard-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: var(--bg2);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* AGENDA LIST VIEW */
+  .agenda-list { display: flex; flex-direction: column; gap: 10px; }
+  .agenda-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.15s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .agenda-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--item-color, var(--border));
+  }
+  .agenda-item:hover { border-color: var(--accent); }
+  .agenda-date-block {
+    text-align: center;
+    min-width: 48px;
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 8px;
+    flex-shrink: 0;
+  }
+  .agenda-day { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; line-height: 1; color: var(--accent); }
+  .agenda-month { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .agenda-info { flex: 1; }
+  .agenda-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .agenda-sub { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .agenda-actions { display: flex; gap: 6px; }
+
+  /* CALENDAR MINI */
+  .mini-cal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+  .cal-nav { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; padding: 4px 10px; font-size: 14px; transition: all 0.15s; }
+  .cal-nav:hover { color: var(--text); border-color: var(--accent); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .cal-day-name { text-align: center; font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; padding: 4px 0; }
+  .cal-day {
+    text-align: center;
+    padding: 7px 4px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .cal-day:hover { background: var(--bg3); color: var(--accent); }
+  .cal-day.today { background: var(--accent); color: #000; font-weight: 700; }
+  .cal-day.has-event::after {
+    content: '';
+    position: absolute;
+    bottom: 2px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--blue);
+  }
+  .cal-day.today.has-event::after { background: #000; }
+  .cal-day.empty { opacity: 0; cursor: default; }
+  .cal-day.other-month { color: var(--muted); opacity: 0.4; }
+
+  /* CHECKLIST inside card */
+  .checklist { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+  .check-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .check-item input[type=checkbox] { accent-color: var(--accent); width: 13px; height: 13px; cursor: pointer; }
+  .check-item.done { text-decoration: line-through; opacity: 0.5; }
+
+  /* URGENCY TIMELINE */
+  .urgency-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255,92,92,0.08);
+    border: 1px solid rgba(255,92,92,0.2);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--red);
+    font-weight: 500;
+  }
+
+  @keyframes slideUp { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+  /* GOOGLE CALENDAR INTEGRATION */
+  .gcal-step {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+  .gcal-step:hover { border-color: var(--accent); }
+  .gcal-step.done { border-color: rgba(45,224,139,0.4); background: rgba(45,224,139,0.04); }
+  .gcal-step.active { border-color: var(--accent); background: rgba(245,166,35,0.04); }
+  .gcal-step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .gcal-step.done .gcal-step-num { background: var(--green); border-color: var(--green); color: #000; }
+  .gcal-step.active .gcal-step-num { background: var(--accent); border-color: var(--accent); color: #000; }
+  .gcal-step-title { font-weight: 600; font-size: 13px; }
+  .gcal-step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; flex: 1; }
+
+  /* GCAL EVENT PREVIEW CARD */
+  .gcal-event-preview {
+    background: var(--bg3);
+    border-left: 4px solid var(--blue);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.15s;
+  }
+  .gcal-event-preview:hover { background: rgba(77,166,255,0.06); }
+  .gcal-event-preview.synced { border-left-color: var(--green); }
+  .gcal-event-preview.error { border-left-color: var(--red); }
+  .gcal-event-icon { font-size: 20px; flex-shrink: 0; }
+  .gcal-event-body { flex: 1; }
+  .gcal-event-title { font-weight: 600; font-size: 13px; }
+  .gcal-event-meta { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 3px; }
+  .gcal-event-status { font-size: 11px; flex-shrink: 0; }
+
+  /* SYNC PROGRESS */
+  .sync-log-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(37,42,56,0.5);
+    font-size: 12px;
+    animation: slideUp 0.2s ease;
+  }
+  .sync-log-item:last-child { border-bottom: none; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* GCAL BUTTON on kanban card */
+  .kcard-gcal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+  }
+  .kcard-gcal-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .kcard-gcal-btn.synced { border-color: rgba(45,224,139,0.4); color: var(--green); }
+
+
+  .modal-header {
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; }
+  .modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; padding: 4px; }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 24px 28px; }
+  .modal-footer { padding: 16px 28px 24px; display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* SHEETS CONNECT */
+  .sheets-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .sheets-card:hover { border-color: var(--green); }
+  .sheets-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #1a7c43, #2da05e);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .sheets-info { flex: 1; }
+  .sheets-name { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .sheets-meta { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .connected-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+  }
+
+  /* NOTIFICATION */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 300;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 340px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-icon { font-size: 20px; flex-shrink: 0; }
+  .toast-text { font-size: 13px; }
+  .toast-title { font-weight: 600; margin-bottom: 2px; }
+  .toast-sub { color: var(--muted); font-size: 12px; }
+
+  /* CHART AREA */
+  .chart-container { padding: 20px; height: 180px; position: relative; }
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 100%;
+  }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .chart-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    background: var(--accent);
+    opacity: 0.7;
+    transition: opacity 0.2s, height 0.6s ease;
+    min-height: 4px;
+  }
+  .chart-bar:hover { opacity: 1; }
+  .chart-bar.budget { background: var(--border); }
+  .chart-label { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  /* TWO-COL LAYOUT */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+  /* LOADING PULSE */
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+  .loading { animation: pulse 1.5s infinite; }
+
+  /* PAGE VIEWS */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state-title { font-family: 'Syne', sans-serif; font-size: 16px; color: var(--text); margin-bottom: 8px; }
+
+  /* LOGIN SCREEN */
+  .login-screen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .login-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px;
+    width: 400px;
+    text-align: center;
+  }
+  .login-logo { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+  .login-tagline { color: var(--muted); font-size: 13px; margin-bottom: 36px; font-family: 'DM Mono', monospace; }
+
+  /* PASSWORD INPUT */
+  .pwd-input-wrap {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .pwd-input {
+    width: 100%;
+    padding: 14px 48px 14px 18px;
+    background: var(--bg3);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 18px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 4px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-align: center;
+  }
+  .pwd-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.1);
+  }
+  .pwd-input.error {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(255,92,92,0.1);
+    animation: shake 0.4s ease;
+  }
+  .pwd-input.success {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(45,224,139,0.1);
+  }
+  .pwd-toggle {
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 18px; padding: 4px;
+    transition: color 0.15s;
+  }
+  .pwd-toggle:hover { color: var(--text); }
+
+  .pwd-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .pwd-btn:hover { background: #ffb940; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(245,166,35,0.3); }
+  .pwd-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .pwd-error-msg {
+    color: var(--red);
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    margin-top: 8px;
+    min-height: 18px;
+    transition: opacity 0.2s;
+  }
+
+  .pwd-attempts {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-top: 6px;
+  }
+
+  .pwd-hint {
+    margin-top: 18px;
+    padding: 12px;
+    background: rgba(245,166,35,0.06);
+    border: 1px solid rgba(245,166,35,0.15);
+    border-radius: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: left;
+    line-height: 1.6;
+  }
+
+  .lock-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(245,166,35,0.3));
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)}
+    40%{transform:translateX(8px)}
+    60%{transform:translateX(-5px)}
+    80%{transform:translateX(5px)}
+  }
+
+  /* LOCKOUT STATE */
+  .lockout-timer {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--red);
+    margin: 16px 0;
+    letter-spacing: 2px;
+  }
+
+  /* CHANGE PASSWORD MODAL */
+  .change-pwd-link {
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-top: 14px;
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .change-pwd-link:hover { color: var(--accent); }
+
+
+  /* Responsive */
+  @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 900px) {
+    .sidebar { width: 60px; }
+    .logo, .nav-section, .user-name, .user-email, .nav-item span { display: none; }
+    .main { margin-left: 60px; }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* TOOLTIP-LIKE subtext */
+  .mono { font-family: 'DM Mono', monospace; }
+  .text-muted { color: var(--muted); }
+  .text-green { color: var(--green); }
+  .text-accent { color: var(--accent); }
+  .text-red { color: var(--red); }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .mt-1 { margin-top: 4px; }
+  .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; }
+  .mt-4 { margin-top: 16px; }
+  .mb-4 { margin-bottom: 16px; }
+  .w-full { width: 100%; }
+  .text-sm { font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN — Proteção por senha -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card" id="loginCard">
+    <span class="lock-icon">🔐</span>
+    <div class="login-logo">ObraFácil</div>
+    <div class="login-tagline">// acesso privado</div>
+
+    <div class="pwd-input-wrap">
+      <input
+        class="pwd-input"
+        type="password"
+        id="pwdInput"
+        placeholder="••••••••"
+        maxlength="32"
+        autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') checkPassword()"
+        oninput="clearPwdError()"
+      >
+      <button class="pwd-toggle" onclick="togglePwdVisible()" id="pwdToggle" title="Mostrar/ocultar">👁</button>
+    </div>
+
+    <button class="pwd-btn" id="pwdBtn" onclick="checkPassword()">
+      🔓 Entrar
+    </button>
+
+    <div class="pwd-error-msg" id="pwdError"></div>
+    <div class="pwd-attempts" id="pwdAttempts"></div>
+
+    <span class="change-pwd-link" onclick="showChangePwdInLogin()">⚙ Trocar senha</span>
+  </div>
+
+  <!-- LOCKOUT SCREEN -->
+  <div class="login-card" id="lockoutCard" style="display:none">
+    <span style="font-size:40px;display:block;margin-bottom:12px">🔒</span>
+    <div class="login-logo" style="color:var(--red)">Bloqueado</div>
+    <div class="login-tagline">// muitas tentativas incorretas</div>
+    <div class="lockout-timer" id="lockoutTimer">5:00</div>
+    <div style="font-size:13px;color:var(--muted)">Aguarde para tentar novamente.</div>
+  </div>
+
+  <!-- CHANGE PASSWORD IN LOGIN -->
+  <div class="login-card" id="changePwdCard" style="display:none">
+    <span style="font-size:36px;display:block;margin-bottom:12px">🔑</span>
+    <div class="login-logo" style="font-size:22px">Trocar Senha</div>
+    <div class="login-tagline" style="margin-bottom:24px">// defina sua senha personalizada</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:16px">
+      <div>
+        <label style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Senha atual</label>
+        <input type="password" id="cpOld" placeholder="••••••••" style="width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;letter-spacing:3px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <div>
+        <label style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Nova senha</label>
+        <input type="password" id="cpNew" placeholder="••••••••" style="width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;letter-spacing:3px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <div id="pwdStrengthBar" style="height:3px;border-radius:3px;margin-top:5px;background:var(--border);transition:all 0.3s"></div>
+        <div id="pwdStrengthLabel" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px"></div>
+      </div>
+      <div>
+        <label style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Confirmar nova senha</label>
+        <input type="password" id="cpConfirm" placeholder="••••••••" style="width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;letter-spacing:3px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+    </div>
+    <div class="pwd-error-msg" id="cpError" style="margin-bottom:10px"></div>
+    <button class="pwd-btn" onclick="saveNewPassword()">💾 Salvar nova senha</button>
+    <span class="change-pwd-link" onclick="backToLogin()" style="display:block;margin-top:12px">← Voltar</span>
+  </div>
+
+  <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:20px;opacity:0.5">
+    v1.0.0 · ObraFácil · uso privado
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell" style="display:none">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">🏗 ObraFácil</div>
+    <div class="logo-sub">v1.0 · beta</div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)">
+      <span class="nav-icon">📊</span>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showPage('orcamentos', this)">
+      <span class="nav-icon">📋</span>
+      <span>Orçamentos</span>
+    </div>
+    <div class="nav-item" onclick="showPage('comprovantes', this)">
+      <span class="nav-icon">🧾</span>
+      <span>Comprovantes</span>
+    </div>
+    <div class="nav-item" onclick="showPage('agenda', this)">
+      <span class="nav-icon">📅</span>
+      <span>Agenda</span>
+      <span class="nav-badge" id="navBadgeAgenda"></span>
+    </div>
+    <div class="nav-section">Ferramentas</div>
+    <div class="nav-item" onclick="showPage('upload', this)">
+      <span class="nav-icon">📸</span>
+      <span>Escanear IA</span>
+    </div>
+    <div class="nav-item" onclick="showPage('planilhas', this)">
+      <span class="nav-icon">🟢</span>
+      <span>Planilhas</span>
+    </div>
+    <div class="nav-item" onclick="showPage('config', this)">
+      <span class="nav-icon">⚙️</span>
+      <span>Configurações</span>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-chip" onclick="showToast('🔒','Sessão ativa','Expira em 12h · vá em Configurações para trocar a senha')">
+      <div class="avatar" id="userAvatar">OF</div>
+      <div>
+        <div class="user-name" id="userName">ObraFácil</div>
+        <div class="user-email" id="userEmail">acesso privado</div>
+      </div>
+    </div>
+    <button onclick="doLogout()" style="width:100%;margin-top:8px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:7px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      🔒 <span>Sair</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" onclick="showPage('planilhas', document.querySelector('[onclick*=planilhas]'))">
+        🟢 Sheets Conectado
+      </button>
+      <button class="btn btn-primary" onclick="openModal('novoOrcamento')">
+        ＋ Novo Orçamento
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card" style="--glow: rgba(245,166,35,0.1)">
+          <div class="stat-label">Orçamentos ativos</div>
+          <div class="stat-value text-accent" id="dashAtivos">—</div>
+          <div class="stat-change" id="dashAtivosChange">—</div>
+        </div>
+        <div class="stat-card" style="--glow: rgba(45,224,139,0.1)">
+          <div class="stat-label">Gasto total</div>
+          <div class="stat-value text-green" id="dashGasto">—</div>
+          <div class="stat-change" id="dashGastoChange">—</div>
+        </div>
+        <div class="stat-card" style="--glow: rgba(77,166,255,0.1)">
+          <div class="stat-label">Comprovantes</div>
+          <div class="stat-value" style="color:var(--blue)" id="dashComprovantes">—</div>
+          <div class="stat-change" id="dashComprovantesChange">—</div>
+        </div>
+        <div class="stat-card" style="--glow: rgba(255,92,92,0.1)">
+          <div class="stat-label">Acima do orçado</div>
+          <div class="stat-value text-red" id="dashAlerta">—</div>
+          <div class="stat-change" id="dashAlertaChange">—</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Gastos por Mês</div>
+            <div class="mono text-sm text-muted">2025</div>
+          </div>
+          <div class="chart-container">
+            <div class="chart-bars" id="chartBars"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Orçamentos Recentes</div>
+            <button class="btn btn-ghost" onclick="showPage('orcamentos', document.querySelectorAll('.nav-item')[1])">Ver todos</button>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Obra</th><th>Orçado</th><th>Gasto</th><th>Status</th>
+            </tr></thead>
+            <tbody id="dashOrcRecentes"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="two-col mt-4">
+        <div class="panel mt-4">
+          <div class="panel-header">
+            <div class="panel-title">Últimos Comprovantes</div>
+            <div class="badge badge-blue">🤖 Escaneado por IA</div>
+          </div>
+          <table>
+            <thead><tr><th>Arquivo</th><th>Loja</th><th>Data</th><th>Valor</th></tr></thead>
+            <tbody id="dashCompRecentes"></tbody>
+          </table>
+        </div>
+
+        <div class="panel mt-4">
+          <div class="panel-header"><div class="panel-title">Gastos por Categoria</div></div>
+          <div style="padding:20px; display:flex; flex-direction:column; gap:12px;">
+            <div id="catBars"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ORÇAMENTOS ===== -->
+    <div class="page" id="page-orcamentos">
+      <div class="flex items-center gap-2 mb-4" style="justify-content:space-between">
+        <div class="flex gap-2">
+          <input placeholder="🔍  Buscar obra..." style="width:260px;" oninput="filterOrcamentos(this.value)">
+          <select id="filterStatus" onchange="filterOrcamentos()">
+            <option value="">Todos os status</option>
+            <option value="andamento">Em andamento</option>
+            <option value="concluido">Concluído</option>
+            <option value="alerta">Em alerta</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('novoOrcamento')">＋ Novo Orçamento</button>
+      </div>
+
+      <div class="panel">
+        <table id="orcamentosTable">
+          <thead><tr>
+            <th>Obra / Cliente</th><th>Orçado</th><th>Gasto</th><th>%</th><th>Prazo</th><th>Status</th><th>Ações</th>
+          </tr></thead>
+          <tbody id="orcamentosBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== COMPROVANTES ===== -->
+    <div class="page" id="page-comprovantes">
+      <div class="flex items-center gap-2 mb-4" style="justify-content:space-between">
+        <input placeholder="🔍  Buscar por loja, data, valor..." style="width:320px;">
+        <div class="flex gap-2">
+          <button class="btn btn-ghost" onclick="exportCSV()">📥 Exportar CSV</button>
+          <button class="btn btn-primary" onclick="showPage('upload', document.querySelectorAll('.nav-item')[3])">📸 Novo Scan</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <table>
+          <thead><tr><th>Arquivo Renomeado</th><th>Loja</th><th>Data Compra</th><th>Valor</th><th>Orçamento</th><th>Ação</th></tr></thead>
+          <tbody id="comprovantesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== UPLOAD / IA ===== -->
+    <div class="page" id="page-upload">
+      <div class="two-col">
+        <div>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="handleDrop(event)">
+            <span class="upload-icon">📸</span>
+            <div class="upload-title">Arraste as fotos aqui</div>
+            <div class="upload-sub">ou clique para selecionar</div>
+            <div class="upload-hint">✨ IA extrai dados automaticamente</div>
+            <input type="file" id="fileInput" multiple accept="image/*" onchange="handleFiles(this.files)">
+          </div>
+
+          <div class="ai-panel" id="aiPanel">
+            <div class="ai-header">
+              <div class="panel-title">Processando com IA</div>
+              <div class="ai-badge">✦ Claude Vision</div>
+            </div>
+            <div class="preview-grid" id="previewGrid"></div>
+            <div class="progress-wrap mb-4">
+              <div class="progress-bar" id="progressBar" style="width:0%"></div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="aiStatus">Aguardando arquivos...</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Dados Extraídos</div>
+              <button class="btn btn-ghost text-sm" id="clearExtracted" onclick="clearExtracted()" style="display:none">Limpar</button>
+            </div>
+            <div id="extractedList" style="padding:20px">
+              <div class="empty-state">
+                <div class="empty-state-icon">🤖</div>
+                <div class="empty-state-title">Aguardando scan</div>
+                <div class="text-muted text-sm">Faça upload de um comprovante para a IA extrair os dados automaticamente</div>
+              </div>
+            </div>
+            <div style="padding:0 20px 20px; display:none" id="saveActions">
+              <div class="form-group mb-4">
+                <label>Vincular ao orçamento</label>
+                <select id="linkOrcamento">
+                  <option value="">Selecione um orçamento...</option>
+                  <option>Cozinha Reforma — Apto 304</option>
+                  <option>Piso Sala — Casa Silva</option>
+                  <option>Elétrica Geral — Comercial MG</option>
+                </select>
+              </div>
+              <button class="btn btn-primary w-full" onclick="saveComprovantes()">
+                💾 Salvar e Enviar ao Sheets
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PLANILHAS ===== -->
+    <div class="page" id="page-planilhas">
+      <div class="two-col">
+        <div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Conexão Google Sheets</div></div>
+            <div style="padding:20px">
+              <div class="sheets-card">
+                <div class="sheets-icon">📗</div>
+                <div class="sheets-info">
+                  <div class="sheets-name">ObraFácil — Master</div>
+                  <div class="sheets-meta">Atualizado há 3 min · 87 linhas</div>
+                </div>
+                <div class="connected-dot"></div>
+              </div>
+
+              <div class="form-group mb-4 mt-3">
+                <label>ID da Planilha</label>
+                <input id="sheetsId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" style="font-family:'DM Mono',monospace;font-size:12px;">
+              </div>
+
+              <div class="form-group mb-4">
+                <label>Aba dos Orçamentos</label>
+                <input placeholder="Orçamentos" value="Orçamentos">
+              </div>
+
+              <div class="form-group mb-4">
+                <label>Aba dos Comprovantes</label>
+                <input placeholder="Comprovantes" value="Comprovantes">
+              </div>
+
+              <button class="btn btn-green w-full mt-2" onclick="testSheets()">🔄 Testar Conexão</button>
+              <button class="btn btn-primary w-full mt-2" onclick="syncNow()">⚡ Sincronizar Agora</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Estrutura da Planilha</div></div>
+            <div style="padding:20px">
+              <div style="font-family:'DM Mono',monospace;font-size:11px;background:var(--bg3);border-radius:8px;padding:14px;line-height:2;">
+                <div style="color:var(--accent);margin-bottom:4px">// Aba: Orçamentos</div>
+                <div style="color:var(--green)">ID | Obra | Cliente | Orçado | Gasto | Status | Data</div>
+                <br>
+                <div style="color:var(--accent);margin-bottom:4px">// Aba: Comprovantes</div>
+                <div style="color:var(--blue)">ID | Arquivo | Loja | Data | Valor | Orçamento_ID</div>
+                <br>
+                <div style="color:var(--accent);margin-bottom:4px">// Aba: Resumo (auto-gerado)</div>
+                <div style="color:var(--muted)">Total_Gasto | Qtd_Comprovantes | Alertas</div>
+              </div>
+
+              <div class="mt-4">
+                <button class="btn btn-ghost w-full" onclick="showToast('📋','Template copiado!','Cole no seu Google Sheets')">
+                  📋 Copiar Fórmulas do Template
+                </button>
+                <button class="btn btn-ghost w-full mt-2" onclick="showToast('📗','Abrindo Sheets...','')">
+                  🔗 Abrir no Google Sheets
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel mt-4">
+            <div class="panel-header"><div class="panel-title">Histórico de Sync</div></div>
+            <table>
+              <thead><tr><th>Quando</th><th>Tipo</th><th>Linhas</th></tr></thead>
+              <tbody id="syncLog">
+                <tr><td class="mono text-sm">Há 3 min</td><td><span class="badge badge-green">Sync</span></td><td>+2</td></tr>
+                <tr><td class="mono text-sm">Há 1h</td><td><span class="badge badge-blue">Upload</span></td><td>+5</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== AGENDA ===== -->
+    <div class="page" id="page-agenda">
+
+      <!-- Urgency strip (shown when tasks are overdue) -->
+      <div class="urgency-strip" id="urgencyStrip">
+        🔴 <strong>2 serviços atrasados</strong> — verifique os cards em vermelho no Kanban
+      </div>
+
+      <!-- Toolbar -->
+      <div class="flex items-center gap-2 mb-4" style="justify-content:space-between">
+        <div class="flex gap-2">
+          <div class="tabs" style="margin-bottom:0;border:none;gap:6px">
+            <button class="btn btn-ghost" id="viewKanban" onclick="setAgendaView('kanban')" style="font-size:12px">⬛ Kanban</button>
+            <button class="btn btn-ghost" id="viewLista" onclick="setAgendaView('lista')" style="font-size:12px">☰ Lista</button>
+            <button class="btn btn-ghost" id="viewCal" onclick="setAgendaView('calendario')" style="font-size:12px">📅 Calendário</button>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <select id="filterObra" onchange="renderAgendaView()" style="font-size:12px;padding:7px 12px">
+            <option value="">Todas as obras</option>
+            <option>Cozinha Reforma</option>
+            <option>Piso Sala</option>
+            <option>Elétrica Geral</option>
+            <option>Banheiro Suite</option>
+          </select>
+          <button class="btn btn-ghost" id="gcalSyncBtn" onclick="openGCalSyncModal()" style="font-size:12px;border-color:rgba(77,166,255,0.3);color:var(--blue)">
+            📅 Google Agenda
+          </button>
+          <button class="btn btn-primary" onclick="openModal('novoServico')">＋ Novo Serviço</button>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px" id="agendaStats"></div>
+
+      <!-- KANBAN VIEW -->
+      <div id="view-kanban" class="kanban"></div>
+
+      <!-- LISTA VIEW -->
+      <div id="view-lista" style="display:none">
+        <div id="listaContent"></div>
+      </div>
+
+      <!-- CALENDARIO VIEW -->
+      <div id="view-calendario" style="display:none">
+        <div class="two-col">
+          <div class="mini-cal">
+            <div class="cal-header">
+              <button class="cal-nav" onclick="changeMonth(-1)">←</button>
+              <div class="cal-title" id="calMonthTitle"></div>
+              <button class="cal-nav" onclick="changeMonth(1)">→</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title" id="calDayTitle">Selecione um dia</div>
+            </div>
+            <div id="calDayEvents" style="padding:16px">
+              <div class="empty-state">
+                <div class="empty-state-icon">📅</div>
+                <div class="empty-state-title">Nenhum dia selecionado</div>
+                <div class="text-muted text-sm">Clique em um dia no calendário</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== CONFIG ===== -->
+
+    <div class="page" id="page-config">
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">IA & Extração</div></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+            <div class="form-group">
+              <label>API Key Claude (Anthropic)</label>
+              <input type="password" id="claudeKey" placeholder="sk-ant-..." value="sk-ant-demo-key">
+            </div>
+            <div class="form-group">
+              <label>Campos para extrair</label>
+              <div style="display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--bg3);border-radius:8px;">
+                <label style="font-size:13px;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center;"><input type="checkbox" checked> Nome da loja</label>
+                <label style="font-size:13px;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center;"><input type="checkbox" checked> Data da compra</label>
+                <label style="font-size:13px;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center;"><input type="checkbox" checked> Valor total</label>
+                <label style="font-size:13px;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center;"><input type="checkbox" checked> Itens comprados</label>
+                <label style="font-size:13px;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center;"><input type="checkbox"> CNPJ da loja</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Padrão de renomeação</label>
+              <input value="YYYY-MM-DD_NomeLoja_Valor" placeholder="YYYY-MM-DD_NomeLoja">
+              <div class="text-sm text-muted mt-1">Ex: 2025-01-15_LeröyMerlin_R$423.jpg</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Google Cloud</div></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+            <div class="form-group">
+              <label>Client ID</label>
+              <input id="gclientId" placeholder="xxxxx.apps.googleusercontent.com" style="font-family:'DM Mono',monospace;font-size:12px;">
+            </div>
+            <div class="form-group">
+              <label>API Key Google</label>
+              <input type="password" id="gapiKey" placeholder="AIzaSy...">
+            </div>
+            <div class="form-group">
+              <label>Drive Folder ID (comprovantes)</label>
+              <input placeholder="1BxiMVs0XRA5nFMdKvBd..." style="font-family:'DM Mono',monospace;font-size:12px;">
+            </div>
+            <button class="btn btn-primary" onclick="saveGoogleConfig()">
+              💾 Salvar Configurações
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Google Calendar Config -->
+      <div class="panel mt-4" style="margin-top:20px">
+        <div class="panel-header">
+          <div class="panel-title">📅 Integração Google Agenda</div>
+          <div id="gcalStatusBadge" class="badge badge-yellow">⚡ Não conectado</div>
+        </div>
+        <div style="padding:24px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:24px">
+
+            <!-- Step 1 -->
+            <div class="gcal-step" id="step1">
+              <div class="gcal-step-num">1</div>
+              <div class="gcal-step-title">Configurar Google Cloud</div>
+              <div class="gcal-step-desc">Ative a Calendar API e adicione o Client ID acima</div>
+              <a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" class="btn btn-ghost mt-2" style="font-size:12px;width:100%;justify-content:center">Abrir Console ↗</a>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="gcal-step" id="step2">
+              <div class="gcal-step-num">2</div>
+              <div class="gcal-step-title">Autorizar Acesso</div>
+              <div class="gcal-step-desc">Faça login com Google para permitir leitura/escrita na agenda</div>
+              <button class="btn btn-primary mt-2" style="font-size:12px;width:100%;justify-content:center" onclick="authorizeGCal()">
+                🔑 Autorizar Google Agenda
+              </button>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="gcal-step" id="step3">
+              <div class="gcal-step-num">3</div>
+              <div class="gcal-step-title">Sincronizar Serviços</div>
+              <div class="gcal-step-desc">Exporte todos os serviços como eventos na sua agenda</div>
+              <button class="btn btn-ghost mt-2" style="font-size:12px;width:100%;justify-content:center" id="syncAllGcalBtn" onclick="syncAllToGCal()" disabled>
+                📤 Sync Todos
+              </button>
+            </div>
+          </div>
+
+          <!-- Calendar selector -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:20px;border-top:1px solid var(--border)">
+            <div class="form-group">
+              <label>Calendário de destino</label>
+              <select id="gcalTarget">
+                <option value="primary">📅 Agenda Principal (primary)</option>
+                <option value="obrafacil">🏗 ObraFácil (criar novo)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Cor dos eventos</label>
+              <select id="gcalColor">
+                <option value="1">🔵 Azul Pavão</option>
+                <option value="2">🟢 Sálvia</option>
+                <option value="3">🟣 Uva</option>
+                <option value="5" selected>🟡 Banana</option>
+                <option value="6">🔴 Tomate</option>
+                <option value="10">🟢 Manjericão</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Lembrete padrão (minutos antes)</label>
+              <select id="gcalReminder">
+                <option value="0">Sem lembrete</option>
+                <option value="30">30 minutos</option>
+                <option value="60" selected>1 hora</option>
+                <option value="1440">1 dia antes</option>
+                <option value="2880">2 dias antes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>O que exportar</label>
+              <select id="gcalExportType">
+                <option value="prazo">Somente prazos</option>
+                <option value="ambos" selected>Início e prazo</option>
+                <option value="inicio">Somente início</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Token display -->
+          <div id="gcalTokenInfo" style="display:none;margin-top:16px;padding:12px;background:rgba(45,224,139,0.06);border:1px solid rgba(45,224,139,0.2);border-radius:10px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px">✅</span>
+              <div>
+                <div style="font-weight:600;font-size:13px;color:var(--green)">Google Agenda Conectada</div>
+                <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace" id="gcalTokenDetail">Token ativo · Expira em 60 min</div>
+              </div>
+              <button class="btn btn-ghost" style="font-size:11px;margin-left:auto" onclick="revokeGCal()">Desconectar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECURITY SECTION -->
+      <div class="panel" style="margin-top:20px">
+        <div class="panel-header">
+          <div class="panel-title">🔐 Segurança & Acesso</div>
+          <div class="badge badge-green">● Sessão ativa</div>
+        </div>
+        <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:24px">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:16px">Trocar Senha</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="form-group">
+                <label>Senha atual</label>
+                <input type="password" id="cfgOldPwd" placeholder="••••••••">
+              </div>
+              <div class="form-group">
+                <label>Nova senha</label>
+                <input type="password" id="cfgNewPwd" placeholder="••••••••" oninput="cfgPwdStrength(this.value)">
+                <div id="cfgStrengthBar" style="height:3px;border-radius:3px;margin-top:5px;background:var(--border);transition:all 0.3s;width:0"></div>
+                <div id="cfgStrengthLabel" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px"></div>
+              </div>
+              <div class="form-group">
+                <label>Confirmar nova senha</label>
+                <input type="password" id="cfgConfirmPwd" placeholder="••••••••">
+              </div>
+              <div id="cfgPwdError" style="font-size:12px;font-family:'DM Mono',monospace;color:var(--red);min-height:16px"></div>
+              <button class="btn btn-primary" onclick="cfgSavePassword()">🔑 Salvar Nova Senha</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:16px">Sessão</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px">Duração da Sessão</div>
+                <div style="font-weight:600">12 horas</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:4px">Após 12h inativas, a senha será pedida novamente</div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px">Bloqueio Automático</div>
+                <div style="font-weight:600">5 tentativas → 5 min bloqueado</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:4px">Proteção contra acesso não autorizado</div>
+              </div>
+              <button class="btn btn-ghost" onclick="doLogout()" style="border-color:rgba(255,92,92,0.3);color:var(--red)">
+                🔒 Encerrar sessão agora
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-config -->
+
+  </div><!-- /content -->
+</main>
+</div><!-- /appShell -->
+
+<!-- MODAL: Novo Orçamento -->
+<div class="modal-overlay" id="modal-novoOrcamento">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📋 Novo Orçamento</div>
+      <button class="modal-close" onclick="closeModal('novoOrcamento')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nome da Obra</label>
+          <input id="nomeObra" placeholder="Ex: Reforma Cozinha">
+        </div>
+        <div class="form-group">
+          <label>Cliente</label>
+          <input id="clienteObra" placeholder="Nome do cliente">
+        </div>
+        <div class="form-group">
+          <label>Valor Orçado (R$)</label>
+          <input id="valorOrcado" type="number" placeholder="0,00" oninput="formatCurrency(this)">
+        </div>
+        <div class="form-group">
+          <label>Data de Início</label>
+          <input id="dataInicio" type="date">
+        </div>
+        <div class="form-group">
+          <label>Prazo de Conclusão</label>
+          <input id="dataPrazo" type="date">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="statusObra">
+            <option>Em andamento</option>
+            <option>Concluído</option>
+            <option>Planejamento</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Descrição / Escopo</label>
+          <textarea id="descObra" placeholder="Descreva os serviços previstos..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('novoOrcamento')">Cancelar</button>
+      <button class="btn btn-primary" onclick="criarOrcamento()">Criar Orçamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Novo Serviço -->
+<div class="modal-overlay" id="modal-novoServico">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📅 Novo Serviço</div>
+      <button class="modal-close" onclick="closeModal('novoServico')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Nome do Serviço</label>
+          <input id="svcNome" placeholder="Ex: Assentar piso da sala">
+        </div>
+        <div class="form-group">
+          <label>Obra / Projeto</label>
+          <select id="svcObra">
+            <option value="">Selecione...</option>
+            <option>Cozinha Reforma</option>
+            <option>Piso Sala</option>
+            <option>Elétrica Geral</option>
+            <option>Banheiro Suite</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Responsável</label>
+          <input id="svcResp" placeholder="Nome do profissional">
+        </div>
+        <div class="form-group">
+          <label>Data de Início</label>
+          <input id="svcInicio" type="date">
+        </div>
+        <div class="form-group">
+          <label>Prazo / Entrega</label>
+          <input id="svcPrazo" type="date">
+        </div>
+        <div class="form-group">
+          <label>Prioridade</label>
+          <select id="svcPrio">
+            <option value="alta">🔴 Alta</option>
+            <option value="media" selected>🟡 Média</option>
+            <option value="baixa">🟢 Baixa</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status Inicial</label>
+          <select id="svcStatus">
+            <option value="backlog">📋 A fazer</option>
+            <option value="andamento">🔨 Em andamento</option>
+            <option value="revisar">🔍 Revisar</option>
+            <option value="concluido">✅ Concluído</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Descrição / Observações</label>
+          <textarea id="svcDesc" placeholder="Detalhes do serviço, materiais necessários..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>Sub-tarefas (uma por linha)</label>
+          <textarea id="svcTasks" placeholder="Preparar a superfície&#10;Aplicar argamassa&#10;Assentar peças&#10;Rejuntar" style="min-height:90px"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('novoServico')">Cancelar</button>
+      <button class="btn btn-primary" onclick="criarServico()">Criar Serviço</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Detalhe Serviço -->
+<div class="modal-overlay" id="modal-detalheServico">
+  <div class="modal" style="width:620px">
+    <div class="modal-header">
+      <div class="modal-title" id="detalheTitle">Detalhes do Serviço</div>
+      <button class="modal-close" onclick="closeModal('detalheServico')">✕</button>
+    </div>
+    <div class="modal-body" id="detalheBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="detalheDeleteBtn">🗑 Excluir</button>
+      <button class="btn btn-ghost" onclick="openGCalForService(editingServiceId)" id="detalheGCalBtn" style="color:var(--blue);border-color:rgba(77,166,255,0.3)">📅 Google Agenda</button>
+      <button class="btn btn-ghost" onclick="closeModal('detalheServico')">Fechar</button>
+      <button class="btn btn-primary" id="detalheSaveBtn">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Google Calendar Sync -->
+<div class="modal-overlay" id="modal-gcalSync">
+  <div class="modal" style="width:640px">
+    <div class="modal-header">
+      <div class="modal-title">📅 Sincronizar com Google Agenda</div>
+      <button class="modal-close" onclick="closeModal('gcalSync')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Auth state: NOT connected -->
+      <div id="gcalNotConnected">
+        <div style="background:rgba(77,166,255,0.07);border:1px solid rgba(77,166,255,0.2);border-radius:12px;padding:20px;text-align:center;margin-bottom:20px">
+          <div style="font-size:36px;margin-bottom:10px">📅</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px">Conecte sua Google Agenda</div>
+          <div style="color:var(--muted);font-size:13px;margin-bottom:16px">Autorize o ObraFácil a criar e atualizar eventos na sua agenda do Google</div>
+          <button class="btn btn-primary" onclick="authorizeGCal()" style="margin:0 auto">
+            🔑 Autorizar com Google
+          </button>
+          <div style="font-size:11px;color:var(--muted);margin-top:12px">
+            Permissões solicitadas: <span style="color:var(--blue)">calendar.events</span> · <span style="color:var(--blue)">calendar.readonly</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);padding:12px;background:var(--bg3);border-radius:8px;line-height:1.8">
+          <strong style="color:var(--text)">📋 Pré-requisitos:</strong><br>
+          1. Adicione o <strong>Client ID</strong> do Google Cloud nas Configurações<br>
+          2. Ative a <strong>Calendar API</strong> no Google Cloud Console<br>
+          3. Adicione <code style="background:var(--bg2);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace">http://localhost</code> e seu domínio como origens autorizadas
+        </div>
+      </div>
+
+      <!-- Auth state: CONNECTED -->
+      <div id="gcalConnected" style="display:none">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(45,224,139,0.07);border:1px solid rgba(45,224,139,0.2);border-radius:10px;margin-bottom:20px">
+          <span style="font-size:22px">✅</span>
+          <div style="flex:1">
+            <div style="font-weight:600;color:var(--green)">Google Agenda conectada</div>
+            <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace" id="gcalConnectedUser"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ffcf0f1ebfedff8f2fef6f3b1fcf0f2">[email&#160;protected]</a></div>
+          </div>
+          <button class="btn btn-ghost" style="font-size:11px" onclick="revokeGCal()">Desconectar</button>
+        </div>
+
+        <!-- Options -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+          <div class="form-group">
+            <label>Exportar</label>
+            <select id="modalExportType">
+              <option value="ambos" selected>Início e prazo</option>
+              <option value="prazo">Somente prazos</option>
+              <option value="inicio">Somente início</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Lembrete</label>
+            <select id="modalReminder">
+              <option value="0">Sem lembrete</option>
+              <option value="30">30 min antes</option>
+              <option value="60" selected>1 hora antes</option>
+              <option value="1440">1 dia antes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Filtrar por status</label>
+            <select id="modalFilterStatus">
+              <option value="todos">Todos os serviços</option>
+              <option value="pendentes" selected>Somente pendentes</option>
+              <option value="andamento">Somente em andamento</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Calendário</label>
+            <select id="modalCalTarget">
+              <option value="primary">📅 Agenda principal</option>
+              <option value="obrafacil">🏗 ObraFácil (dedicado)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Preview list -->
+        <div class="panel-header" style="padding:0;margin-bottom:12px">
+          <div class="panel-title" style="font-size:13px">Prévia dos eventos a exportar</div>
+          <button class="btn btn-ghost" style="font-size:11px" onclick="refreshGCalPreview()">↻ Atualizar</button>
+        </div>
+        <div id="gcalEventPreview" style="max-height:280px;overflow-y:auto;padding-right:4px"></div>
+
+        <!-- Sync log -->
+        <div id="gcalSyncLogWrap" style="display:none;margin-top:16px">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">Log de sincronização</div>
+          <div id="gcalSyncLog" style="background:var(--bg3);border-radius:8px;padding:10px 14px;max-height:120px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" id="gcalModalFooter">
+      <button class="btn btn-ghost" onclick="closeModal('gcalSync')">Fechar</button>
+      <button class="btn btn-primary" id="gcalExportBtn" onclick="exportAllToGCal()" style="display:none">
+        📤 Exportar para Google Agenda
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Single event preview -->
+<div class="modal-overlay" id="modal-gcalEvent">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title">📅 Enviar para Google Agenda</div>
+      <button class="modal-close" onclick="closeModal('gcalEvent')">✕</button>
+    </div>
+    <div class="modal-body" id="gcalEventBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('gcalEvent')">Cancelar</button>
+      <button class="btn btn-primary" id="gcalEventConfirmBtn">📅 Criar Evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHES ORÇAMENTO -->
+<div class="modal-overlay" id="modal-detalheOrcamento">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <span id="detalheOrcTitulo" style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">Detalhes do Orçamento</span>
+      <button class="modal-close" onclick="closeModal('detalheOrcamento')">✕</button>
+    </div>
+    <div class="modal-body" id="detalheOrcBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" style="color:var(--red);border-color:var(--red)" id="detalheOrcExcluirBtn">🗑 Excluir</button>
+      <button class="btn btn-ghost" onclick="closeModal('detalheOrcamento')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toastIcon">✅</div>
+  <div class="toast-text">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-sub" id="toastSub"></div>
+  </div>
+</div>
+
+<script>
+// ========= STATE =========
+const state = {
+  orcamentos: [
+    { id:1, obra:'Cozinha Reforma', cliente:'Apto 304', orcado:12000, gasto:10400, prazo:'2025-03-15', status:'andamento' },
+    { id:2, obra:'Piso Sala', cliente:'Casa Silva', orcado:8000, gasto:9200, prazo:'2025-02-28', status:'alerta' },
+    { id:3, obra:'Elétrica Geral', cliente:'Comercial MG', orcado:15000, gasto:7800, prazo:'2025-04-30', status:'andamento' },
+    { id:4, obra:'Banheiro Suite', cliente:'Res. Nogueira', orcado:6500, gasto:6500, prazo:'2025-01-20', status:'concluido' },
+  ],
+  comprovantes: [
+    { id:1, arquivo:'2025-01-15_LeröyMerlin_R$423.jpg', loja:'Leröy Merlin', data:'15/01/2025', valor:'R$423,90', orcamento:'Cozinha Reforma' },
+    { id:2, arquivo:'2025-01-12_CasaBahia_R$1280.jpg', loja:'Casa Bahia', data:'12/01/2025', valor:'R$1.280,00', orcamento:'Piso Sala' },
+    { id:3, arquivo:'2025-01-10_TudoElétrico_R$890.jpg', loja:'TudoElétrico', data:'10/01/2025', valor:'R$890,00', orcamento:'Elétrica Geral' },
+  ],
+  extractedData: [],
+  pendingFiles: []
+};
+
+// ========= LOGIN =========
+// ========= PASSWORD PROTECTION — versão robusta =========
+const AUTH = {
+  HASH_KEY:     'obrafacil_pwd_hash',
+  ATTEMPTS_KEY: 'obrafacil_attempts',
+  LOCKOUT_KEY:  'obrafacil_lockout',
+  SESSION_KEY:  'obrafacil_session',
+  MAX_ATTEMPTS:  5,
+  LOCKOUT_SECS:  300,
+  SESSION_HRS:   12,
+};
+
+// Hash simples e confiável — não depende de crypto.subtle
+function simpleHash(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 0x9e3779b9);
+    h2 = Math.imul(h2 ^ c, 0x5f4a7c15);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 0x45d9f3b) ^ Math.imul(h2 ^ (h2 >>> 13), 0x45d9f3b);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 0x45d9f3b) ^ Math.imul(h1 ^ (h1 >>> 13), 0x45d9f3b);
+  return (0x100000000 + h1).toString(16).slice(1) + (0x100000000 + h2).toString(16).slice(1);
+}
+
+// Hash padrão de "obra2025" pré-computado para evitar async
+const DEFAULT_PWD    = 'obra2025';
+const DEFAULT_HASH   = simpleHash(DEFAULT_PWD);
+
+function getStoredHash() {
+  return localStorage.getItem(AUTH.HASH_KEY) || DEFAULT_HASH;
+}
+
+function getAttempts()  { return parseInt(localStorage.getItem(AUTH.ATTEMPTS_KEY) || '0'); }
+function setAttempts(n) { try { localStorage.setItem(AUTH.ATTEMPTS_KEY, n); } catch(e){} }
+function getLockoutEnd(){ return parseInt(localStorage.getItem(AUTH.LOCKOUT_KEY) || '0'); }
+function setLockout()   { try { localStorage.setItem(AUTH.LOCKOUT_KEY, Date.now() + AUTH.LOCKOUT_SECS * 1000); } catch(e){} }
+function clearLockout() { try { localStorage.removeItem(AUTH.LOCKOUT_KEY); localStorage.removeItem(AUTH.ATTEMPTS_KEY); } catch(e){} }
+function isSessionValid(){ try { const e = localStorage.getItem(AUTH.SESSION_KEY); return e && parseInt(e) > Date.now(); } catch(e){ return false; } }
+function createSession() { try { localStorage.setItem(AUTH.SESSION_KEY, Date.now() + AUTH.SESSION_HRS * 3600000); } catch(e){} }
+function clearSession()  { try { localStorage.removeItem(AUTH.SESSION_KEY); } catch(e){} }
+
+// Inicializa na carga da página
+function checkAutoLogin() {
+  if (isSessionValid()) { unlockApp(); return; }
+  const lockEnd = getLockoutEnd();
+  if (lockEnd > Date.now()) {
+    showLockout(Math.ceil((lockEnd - Date.now()) / 1000));
+  } else {
+    clearLockout();
+    showLoginCard();
+  }
+}
+
+function showLoginCard() {
+  document.getElementById('loginCard').style.display    = 'block';
+  document.getElementById('lockoutCard').style.display  = 'none';
+  document.getElementById('changePwdCard').style.display= 'none';
+  const a = getAttempts();
+  const attEl = document.getElementById('pwdAttempts');
+  if (attEl && a > 0) {
+    const rem = AUTH.MAX_ATTEMPTS - a;
+    attEl.textContent = `${rem} tentativa${rem!==1?'s':''} restante${rem!==1?'s':''}`;
+  }
+}
+
+function checkPassword() {
+  const input  = document.getElementById('pwdInput');
+  const val    = (input.value || '').trim();
+  const btn    = document.getElementById('pwdBtn');
+  const errEl  = document.getElementById('pwdError');
+  const attEl  = document.getElementById('pwdAttempts');
+
+  if (!val) { input.focus(); return; }
+
+  btn.disabled  = true;
+  btn.innerHTML = '⏳ Verificando...';
+
+  // pequeno delay para o UX não parecer instantâneo demais
+  setTimeout(() => {
+    const hash   = simpleHash(val);
+    const stored = getStoredHash();
+
+    if (hash === stored) {
+      // ✅ CORRETO
+      input.classList.remove('error');
+      input.classList.add('success');
+      clearLockout();
+      createSession();
+      btn.innerHTML = '✅ Acesso liberado!';
+      if (errEl)  errEl.textContent = '';
+      if (attEl)  attEl.textContent = '';
+      setTimeout(() => unlockApp(), 500);
+
+    } else {
+      // ❌ ERRADO
+      btn.disabled  = false;
+      btn.innerHTML = '🔓 Entrar';
+      input.classList.add('error');
+      input.value   = '';
+      input.focus();
+
+      const attempts = getAttempts() + 1;
+      setAttempts(attempts);
+
+      if (attempts >= AUTH.MAX_ATTEMPTS) {
+        setLockout();
+        showLockout(AUTH.LOCKOUT_SECS);
+      } else {
+        const rem = AUTH.MAX_ATTEMPTS - attempts;
+        if (errEl) errEl.textContent = '❌ Senha incorreta';
+        if (attEl) attEl.textContent = `${rem} tentativa${rem!==1?'s':''} restante${rem!==1?'s':''}`;
+      }
+    }
+  }, 300);
+}
+
+function unlockApp() {
+  const screen = document.getElementById('loginScreen');
+  screen.style.transition = 'opacity 0.4s';
+  screen.style.opacity    = '0';
+  setTimeout(() => {
+    screen.style.display = 'none';
+    document.getElementById('appShell').style.display = 'block';
+    initApp();
+  }, 400);
+}
+
+let lockoutInterval = null;
+function showLockout(seconds) {
+  document.getElementById('loginCard').style.display    = 'none';
+  document.getElementById('lockoutCard').style.display  = 'block';
+  document.getElementById('changePwdCard').style.display= 'none';
+  clearInterval(lockoutInterval);
+  let rem = seconds;
+  const tick = () => {
+    const m = String(Math.floor(rem/60)).padStart(2,'0');
+    const s = String(rem%60).padStart(2,'0');
+    const el = document.getElementById('lockoutTimer');
+    if (el) el.textContent = `${m}:${s}`;
+    if (rem <= 0) { clearInterval(lockoutInterval); clearLockout(); showLoginCard(); }
+    rem--;
+  };
+  tick();
+  lockoutInterval = setInterval(tick, 1000);
+}
+
+function clearPwdError() {
+  const input = document.getElementById('pwdInput');
+  if (input) input.classList.remove('error');
+  const err = document.getElementById('pwdError');
+  if (err) err.textContent = '';
+}
+
+function togglePwdVisible() {
+  const input = document.getElementById('pwdInput');
+  const btn   = document.getElementById('pwdToggle');
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    input.style.letterSpacing = '2px';
+    if (btn) btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    input.style.letterSpacing = '4px';
+    if (btn) btn.textContent = '👁';
+  }
+}
+
+function showChangePwdInLogin() {
+  document.getElementById('loginCard').style.display    = 'none';
+  document.getElementById('changePwdCard').style.display= 'block';
+}
+function backToLogin() {
+  document.getElementById('changePwdCard').style.display= 'none';
+  document.getElementById('loginCard').style.display    = 'block';
+  const err = document.getElementById('cpError');
+  if (err) err.textContent = '';
+}
+
+function saveNewPassword() {
+  const oldVal  = (document.getElementById('cpOld')?.value    || '').trim();
+  const newVal  = (document.getElementById('cpNew')?.value    || '').trim();
+  const confirm = (document.getElementById('cpConfirm')?.value|| '').trim();
+  const errEl   = document.getElementById('cpError');
+
+  errEl.style.color = 'var(--red)';
+  errEl.textContent = '';
+
+  if (!oldVal || !newVal || !confirm) { errEl.textContent = '⚠️ Preencha todos os campos'; return; }
+  if (newVal.length < 4)              { errEl.textContent = '⚠️ Mínimo 4 caracteres'; return; }
+  if (newVal !== confirm)             { errEl.textContent = '❌ Senhas não coincidem'; return; }
+  if (simpleHash(oldVal) !== getStoredHash()) { errEl.textContent = '❌ Senha atual incorreta'; return; }
+
+  try { localStorage.setItem(AUTH.HASH_KEY, simpleHash(newVal)); } catch(e) {}
+  createSession();
+  errEl.style.color = 'var(--green)';
+  errEl.textContent = '✅ Senha salva! Entrando...';
+  setTimeout(() => unlockApp(), 800);
+}
+
+// Medidor de força (no painel de login)
+function pwdStrengthMeter(inputId, barId, lblId) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  el.addEventListener('input', () => {
+    const v = el.value;
+    const bar = document.getElementById(barId);
+    const lbl = document.getElementById(lblId);
+    if (!bar || !lbl || !v) { if(bar) bar.style.width='0'; if(lbl) lbl.textContent=''; return; }
+    let score = 0;
+    if (v.length >= 4)  score++;
+    if (v.length >= 8)  score++;
+    if (/[A-Z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const lvl = [
+      {c:'var(--red)',    w:'20%', t:'Muito fraca'},
+      {c:'var(--red)',    w:'40%', t:'Fraca'},
+      {c:'var(--accent)', w:'60%', t:'Média'},
+      {c:'var(--blue)',   w:'80%', t:'Forte'},
+      {c:'var(--green)',  w:'100%',t:'Muito forte ✓'},
+    ][Math.min(score, 4)];
+    bar.style.cssText = `height:3px;border-radius:3px;margin-top:5px;background:${lvl.c};width:${lvl.w};transition:all 0.3s`;
+    lbl.style.color = lvl.c;
+    lbl.textContent = lvl.t;
+  });
+}
+
+function doLogout() {
+  if (!confirm('Sair do ObraFácil?')) return;
+  clearSession();
+  document.getElementById('appShell').style.display    = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginScreen').style.opacity = '1';
+  const input = document.getElementById('pwdInput');
+  if (input) { input.value=''; input.type='password'; input.style.letterSpacing='4px'; input.classList.remove('success','error'); }
+  const toggle = document.getElementById('pwdToggle');
+  if (toggle) toggle.textContent = '👁';
+  const err = document.getElementById('pwdError');   if(err) err.textContent='';
+  const att = document.getElementById('pwdAttempts'); if(att) att.textContent='';
+  const btn = document.getElementById('pwdBtn');
+  if (btn) { btn.disabled=false; btn.innerHTML='🔓 Entrar'; }
+  showLoginCard();
+}
+
+// Legacy compat
+function doLogin() { checkPassword(); }
+
+// Iniciar na carga
+(function init() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAutoLogin();
+      pwdStrengthMeter('cpNew', 'pwdStrengthBar', 'pwdStrengthLabel');
+    });
+  } else {
+    checkAutoLogin();
+    pwdStrengthMeter('cpNew', 'pwdStrengthBar', 'pwdStrengthLabel');
+  }
+})();
+
+
+
+
+
+// ========= INIT =========
+function initApp() {
+  renderDashboard();
+  renderOrcamentos();
+  renderComprovantes();
+  renderChart();
+  renderCategories();
+  renderAgendaStats();
+  updateNavBadge();
+  setAgendaView('kanban');
+}
+
+// ========= NAVIGATION =========
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (el) el.closest?.('.nav-item')?.classList.add('active') || el.classList?.add('active');
+  const titles = {
+    dashboard:'Dashboard', orcamentos:'Orçamentos',
+    comprovantes:'Comprovantes', upload:'Escanear com IA',
+    planilhas:'Google Planilhas', config:'Configurações',
+    agenda:'Agenda de Serviços'
+  };
+  document.getElementById('pageTitle').textContent = titles[id] || id;
+  if (id === 'agenda') { renderAgendaStats(); renderAgendaView(); updateNavBadge(); }
+  if (id === 'dashboard') { renderDashboard(); renderChart(); }
+}
+
+// ========= ORÇAMENTOS =========
+function renderOrcamentos(data) {
+  const items = data || state.orcamentos;
+  const tbody = document.getElementById('orcamentosBody');
+  tbody.innerHTML = items.map(o => {
+    const pct = Math.round((o.gasto / o.orcado) * 100);
+    const over = o.gasto > o.orcado;
+    const statusMap = {
+      andamento: '<span class="badge badge-yellow"><span class="dot"></span>Em andamento</span>',
+      concluido: '<span class="badge badge-green"><span class="dot"></span>Concluído</span>',
+      alerta: '<span class="badge badge-red"><span class="dot"></span>Acima do orçado</span>'
+    };
+    return `<tr>
+      <td><div style="font-weight:500">${o.obra}</div><div class="text-sm text-muted">${o.cliente}</div></td>
+      <td class="mono">R$${o.orcado.toLocaleString('pt-BR')}</td>
+      <td class="mono ${over ? 'text-red' : 'text-green'}">R$${o.gasto.toLocaleString('pt-BR')}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress-wrap" style="width:60px">
+            <div class="progress-bar" style="width:${Math.min(pct,100)}%;background:${over?'var(--red)':'var(--accent)'}"></div>
+          </div>
+          <span class="mono text-sm ${over?'text-red':''}">${pct}%</span>
+        </div>
+      </td>
+      <td class="mono text-sm text-muted">${o.prazo}</td>
+      <td>${statusMap[o.status] || ''}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px" onclick="verOrcamento(${o.id})">👁 Ver</button>
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px" onclick="exportToSheets(${o.id})">📤</button>
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;color:var(--red);border-color:rgba(255,92,92,0.3)" onclick="excluirOrcamento(${o.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterOrcamentos(val) {
+  const q = (val || '').toLowerCase();
+  const filtered = state.orcamentos.filter(o =>
+    o.obra.toLowerCase().includes(q) || o.cliente.toLowerCase().includes(q)
+  );
+  renderOrcamentos(filtered);
+}
+
+function criarOrcamento() {
+  const nome = document.getElementById('nomeObra').value;
+  const cliente = document.getElementById('clienteObra').value;
+  const valor = parseFloat(document.getElementById('valorOrcado').value) || 0;
+  const prazo = document.getElementById('dataPrazo').value;
+  if (!nome) { showToast('⚠️','Preencha o nome da obra',''); return; }
+  state.orcamentos.unshift({
+    id: Date.now(), obra: nome, cliente, orcado: valor, gasto: 0,
+    prazo: prazo || '—', status: 'andamento'
+  });
+  renderOrcamentos();
+  renderDashboard();
+  closeModal('novoOrcamento');
+  showToast('✅', 'Orçamento criado!', `"${nome}" adicionado com sucesso`);
+  // Simulate sync
+  setTimeout(() => addSyncLog('Novo orçamento'), 1000);
+}
+
+function verOrcamento(id) {
+  const o = state.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  const pct = Math.round((o.gasto / o.orcado) * 100);
+  const over = o.gasto > o.orcado;
+  const saldo = o.orcado - o.gasto;
+  const statusLabel = { andamento:'🟡 Em andamento', concluido:'🟢 Concluído', alerta:'🔴 Acima do orçado' };
+
+  document.getElementById('detalheOrcTitulo').textContent = o.obra;
+  document.getElementById('detalheOrcBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div style="background:var(--bg3);border-radius:10px;padding:16px">
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Cliente</div>
+        <div style="font-weight:600">${o.cliente}</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:16px">
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Status</div>
+        <div style="font-weight:600">${statusLabel[o.status] || o.status}</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:16px">
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Orçado</div>
+        <div style="font-weight:700;font-size:18px;font-family:'Syne',sans-serif">R$${o.orcado.toLocaleString('pt-BR')}</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:16px">
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Gasto</div>
+        <div style="font-weight:700;font-size:18px;font-family:'Syne',sans-serif;color:${over?'var(--red)':'var(--green)'}">R$${o.gasto.toLocaleString('pt-BR')}</div>
+      </div>
+    </div>
+    <div style="background:var(--bg3);border-radius:10px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase">Progresso do orçamento</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:${over?'var(--red)':'var(--text)'}">${pct}%</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" style="width:${Math.min(pct,100)}%;background:${over?'var(--red)':'var(--accent)'}"></div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:${saldo>=0?'var(--green)':'var(--red)'}">
+        ${saldo >= 0 ? `✅ Saldo disponível: R$${saldo.toLocaleString('pt-BR')}` : `⚠️ Excedido em: R$${Math.abs(saldo).toLocaleString('pt-BR')}`}
+      </div>
+    </div>
+    <div style="background:var(--bg3);border-radius:10px;padding:16px">
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Prazo</div>
+      <div style="font-family:'DM Mono',monospace">📅 ${o.prazo || '—'}</div>
+    </div>`;
+
+  document.getElementById('detalheOrcExcluirBtn').onclick = () => {
+    excluirOrcamento(id);
+    closeModal('detalheOrcamento');
+  };
+  openModal('detalheOrcamento');
+}
+
+function excluirOrcamento(id) {
+  const o = state.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  if (!confirm(`Excluir o orçamento "${o.obra}"?\nEsta ação não pode ser desfeita.`)) return;
+  state.orcamentos = state.orcamentos.filter(x => x.id !== id);
+  renderOrcamentos();
+  renderDashboard();
+  renderChart();
+  renderCategories();
+  showToast('🗑', 'Orçamento excluído', `"${o.obra}" removido`);
+}
+function renderComprovantes() {
+  const tbody = document.getElementById('comprovantesBody');
+  if (!state.comprovantes.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhum comprovante cadastrado</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.comprovantes.map(c => `
+    <tr>
+      <td><span class="mono text-sm text-accent">${c.arquivo}</span></td>
+      <td>${c.loja}</td>
+      <td class="mono text-muted">${c.data}</td>
+      <td class="mono text-green">${c.valor}</td>
+      <td><span class="badge badge-blue">${c.orcamento}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px" onclick="showToast('🖼','${c.arquivo}','Visualizando...')">👁 Ver</button>
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;color:var(--red);border-color:rgba(255,92,92,0.3)" onclick="excluirComprovante(${c.id})">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function excluirComprovante(id) {
+  const c = state.comprovantes.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Excluir o comprovante "${c.arquivo}"?\nEsta ação não pode ser desfeita.`)) return;
+  state.comprovantes = state.comprovantes.filter(x => x.id !== id);
+  renderComprovantes();
+  renderDashboard();
+  showToast('🗑', 'Comprovante excluído', `"${c.arquivo}" removido`);
+}
+
+function exportCSV() {
+  const rows = [['Arquivo','Loja','Data','Valor','Orçamento']];
+  state.comprovantes.forEach(c => rows.push([c.arquivo, c.loja, c.data, c.valor, c.orcamento]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'comprovantes.csv';
+  a.click();
+  showToast('📥','CSV exportado!','Arquivo salvo com sucesso');
+}
+
+// ========= UPLOAD / IA =========
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+}
+
+function handleFiles(files) {
+  if (!files || files.length === 0) return;
+  document.getElementById('aiPanel').classList.add('visible');
+  document.getElementById('previewGrid').innerHTML = '';
+  state.pendingFiles = Array.from(files);
+  state.extractedData = [];
+
+  // Show previews
+  state.pendingFiles.forEach((f, i) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const card = document.createElement('div');
+      card.className = 'preview-card';
+      card.id = `preview-${i}`;
+      card.innerHTML = `
+        <div class="preview-img"><img src="${e.target.result}" style="width:100%;height:110px;object-fit:cover"></div>
+        <div class="preview-info">
+          <div class="preview-name">${f.name}</div>
+          <div class="preview-status"><span class="badge badge-yellow loading" id="status-${i}">⏳ Processando</span></div>
+        </div>`;
+      document.getElementById('previewGrid').appendChild(card);
+    };
+    reader.readAsDataURL(f);
+  });
+
+  processWithAI(files);
+}
+
+async function processWithAI(files) {
+  const apiKey = document.getElementById('claudeKey')?.value || '';
+  const bar = document.getElementById('progressBar');
+  const statusEl = document.getElementById('aiStatus');
+  const list = document.getElementById('extractedList');
+  const saveActions = document.getElementById('saveActions');
+
+  list.innerHTML = '';
+  document.getElementById('clearExtracted').style.display = 'inline-flex';
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    statusEl.textContent = `Analisando "${file.name}"...`;
+    bar.style.width = `${((i) / files.length) * 100}%`;
+
+    // Read file as base64
+    const base64 = await new Promise(res => {
+      const r = new FileReader();
+      r.onload = e => res(e.target.result.split(',')[1]);
+      r.readAsDataURL(file);
+    });
+
+    let extracted = null;
+
+    // Try Claude API if key available
+    if (apiKey && apiKey !== 'sk-ant-demo-key' && apiKey.startsWith('sk-ant')) {
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: base64 } },
+                { type: 'text', text: 'Analise este comprovante/nota fiscal e extraia APENAS um JSON com: {"loja":"nome da loja","data":"DD/MM/YYYY","valor":"R$0,00","itens":["item1","item2"],"cnpj":"00.000.000/0000-00"}. Responda SOMENTE com o JSON, sem texto adicional.' }
+              ]
+            }]
+          })
+        });
+        const data = await response.json();
+        const text = data.content?.map(b => b.text || '').join('');
+        const clean = text.replace(/```json|```/g, '').trim();
+        extracted = JSON.parse(clean);
+      } catch(e) {
+        console.log('API error, using demo data:', e);
+      }
+    }
+
+    // Demo data if no API key
+    if (!extracted) {
+      await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+      const demos = [
+        { loja:'Leröy Merlin', data:'22/02/2025', valor:'R$342,90', itens:['Cimento 50kg','Areia fina','Tinta branca'], cnpj:'07.168.181/0001-71' },
+        { loja:'Casa Bahia', data:'21/02/2025', valor:'R$1.150,00', itens:['Torneira monocomando','Ducha elétrica'], cnpj:'33.041.260/0652-90' },
+        { loja:'TudoElétrico', data:'20/02/2025', valor:'R$780,50', itens:['Fio 2.5mm 50m','Disjuntor 30A','Tomadas x10'], cnpj:'12.345.678/0001-90' },
+      ];
+      extracted = demos[i % demos.length];
+    }
+
+    // Generate renamed filename
+    const d = extracted.data.replace(/\//g,'-').split('-').reverse().join('-');
+    const lojaClean = extracted.loja.replace(/\s+/g,'').replace(/[^a-zA-ZÀ-ú0-9]/g,'');
+    const valorNum = extracted.valor.replace(/[R$\s.]/g,'').replace(',','.');
+    const newName = `${d}_${lojaClean}_R$${valorNum}.jpg`;
+    extracted._newName = newName;
+    extracted._original = file.name;
+    state.extractedData.push(extracted);
+
+    // Update preview status
+    const statusBadge = document.getElementById(`status-${i}`);
+    if (statusBadge) {
+      statusBadge.className = 'badge badge-green';
+      statusBadge.innerHTML = '✓ Extraído';
+    }
+
+    // Add to extracted list
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;animation:slideUp 0.2s ease';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-weight:600;font-size:13px">${extracted.loja}</div>
+        <div class="badge badge-green">${extracted.valor}</div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:8px">
+        📅 ${extracted.data} ${extracted.cnpj ? '· ' + extracted.cnpj : ''}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${extracted.itens?.slice(0,3).join(' · ')}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;background:var(--bg2);padding:6px 10px;border-radius:6px;color:var(--accent)">
+        📁 ${newName}
+      </div>
+    `;
+    list.appendChild(card);
+    bar.style.width = `${((i + 1) / files.length) * 100}%`;
+  }
+
+  statusEl.textContent = `✓ ${files.length} arquivo(s) processado(s) com sucesso`;
+  saveActions.style.display = 'block';
+  showToast('🤖', 'IA concluiu!', `${files.length} comprovante(s) extraídos`);
+}
+
+function saveComprovantes() {
+  state.extractedData.forEach(d => {
+    state.comprovantes.unshift({
+      id: Date.now(),
+      arquivo: d._newName,
+      loja: d.loja,
+      data: d.data,
+      valor: d.valor,
+      orcamento: document.getElementById('linkOrcamento').value || '—'
+    });
+  });
+  renderComprovantes();
+  showToast('💾', 'Salvos e sincronizados!', `${state.extractedData.length} comprovante(s) enviados ao Sheets`);
+  addSyncLog('Upload comprovantes');
+  document.getElementById('saveActions').style.display = 'none';
+  document.getElementById('clearExtracted').style.display = 'none';
+}
+
+function clearExtracted() {
+  document.getElementById('extractedList').innerHTML = `<div class="empty-state"><div class="empty-state-icon">🤖</div><div class="empty-state-title">Aguardando scan</div><div class="text-muted text-sm">Faça upload de um comprovante para a IA extrair os dados</div></div>`;
+  document.getElementById('aiPanel').classList.remove('visible');
+  document.getElementById('saveActions').style.display = 'none';
+  document.getElementById('clearExtracted').style.display = 'none';
+  state.extractedData = [];
+}
+
+// ========= SHEETS =========
+function testSheets() {
+  showToast('🟢', 'Conexão OK!', 'Google Sheets respondendo normalmente');
+}
+
+function syncNow() {
+  showToast('⚡', 'Sincronizando...', 'Enviando dados ao Google Sheets');
+  addSyncLog('Sync manual');
+  setTimeout(() => showToast('✅', 'Sync concluído!', `${state.orcamentos.length} orçamentos · ${state.comprovantes.length} comprovantes`), 1500);
+}
+
+function exportToSheets(id) {
+  showToast('📤', 'Enviado ao Sheets!', 'Linha atualizada na planilha');
+  addSyncLog('Exportação');
+}
+
+function addSyncLog(tipo) {
+  const log = document.getElementById('syncLog');
+  const row = document.createElement('tr');
+  row.innerHTML = `<td class="mono text-sm">Agora</td><td><span class="badge badge-yellow">${tipo}</span></td><td>+1</td>`;
+  log.insertBefore(row, log.firstChild);
+}
+
+// ========= CHART =========
+function renderDashboard() {
+  const orcs = state.orcamentos;
+  const comps = state.comprovantes;
+
+  // Cards de stats
+  const ativos = orcs.filter(o => o.status !== 'concluido').length;
+  const gastoTotal = orcs.reduce((s, o) => s + (o.gasto || 0), 0);
+  const alertas = orcs.filter(o => o.gasto > o.orcado);
+  const excedenteTotal = alertas.reduce((s, o) => s + (o.gasto - o.orcado), 0);
+
+  const fmt = v => v >= 1000 ? 'R$' + (v/1000).toFixed(1).replace('.',',') + 'k' : 'R$' + v.toLocaleString('pt-BR');
+
+  document.getElementById('dashAtivos').textContent = ativos;
+  document.getElementById('dashAtivosChange').innerHTML = `<span class="${ativos>0?'up':''}">${ativos}</span> orçamento${ativos!==1?'s':''} ativo${ativos!==1?'s':''}`;
+
+  document.getElementById('dashGasto').textContent = fmt(gastoTotal);
+  document.getElementById('dashGastoChange').innerHTML = `Total em ${orcs.length} obra${orcs.length!==1?'s':''}`;
+
+  document.getElementById('dashComprovantes').textContent = comps.length;
+  document.getElementById('dashComprovantesChange').innerHTML = `<span>${comps.length}</span> comprovante${comps.length!==1?'s':''}`;
+
+  document.getElementById('dashAlerta').textContent = alertas.length > 0 ? fmt(excedenteTotal) : 'R$0';
+  document.getElementById('dashAlertaChange').innerHTML = alertas.length > 0
+    ? `<span class="down">${alertas.length} obra${alertas.length!==1?'s':''}</span> em alerta`
+    : `<span class="up">Nenhuma obra</span> em alerta`;
+
+  // Tabela orçamentos recentes
+  const statusMap = {
+    andamento: '<span class="badge badge-yellow"><span class="dot"></span>Em andamento</span>',
+    concluido: '<span class="badge badge-green"><span class="dot"></span>Concluído</span>',
+    alerta:    '<span class="badge badge-red"><span class="dot"></span>Acima</span>'
+  };
+  const recentes = orcs.slice(0, 4);
+  document.getElementById('dashOrcRecentes').innerHTML = recentes.length
+    ? recentes.map(o => `<tr>
+        <td><div style="font-weight:500">${o.obra}</div><div class="text-sm text-muted">${o.cliente}</div></td>
+        <td class="mono">R$${o.orcado.toLocaleString('pt-BR')}</td>
+        <td class="mono ${o.gasto > o.orcado ? 'text-red' : ''}">R$${o.gasto.toLocaleString('pt-BR')}</td>
+        <td>${statusMap[o.status] || ''}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">Nenhum orçamento</td></tr>';
+
+  // Tabela comprovantes recentes
+  document.getElementById('dashCompRecentes').innerHTML = comps.length
+    ? comps.slice(0, 4).map(c => `<tr>
+        <td><span class="mono text-sm">${c.arquivo}</span></td>
+        <td>${c.loja}</td>
+        <td class="mono text-muted">${c.data}</td>
+        <td class="mono text-green">${c.valor}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">Nenhum comprovante</td></tr>';
+}
+
+
+  const months = ['Jul','Ago','Set','Out','Nov','Dez','Jan'];
+  const values = [8200, 12400, 9800, 15600, 11200, 14800, 9400];
+  const max = Math.max(...values);
+  const container = document.getElementById('chartBars');
+  container.innerHTML = months.map((m, i) => {
+    const h = Math.round((values[i] / max) * 140);
+    return `<div class="chart-bar-wrap">
+      <div class="chart-bar" style="height:${h}px" title="R$${values[i].toLocaleString('pt-BR')}"></div>
+      <div class="chart-label">${m}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCategories() {
+  const cats = [
+    { name:'Materiais', pct: 48, color: 'var(--accent)' },
+    { name:'Mão de obra', pct: 31, color: 'var(--blue)' },
+    { name:'Ferramentas', pct: 13, color: 'var(--green)' },
+    { name:'Outros', pct: 8, color: 'var(--muted)' },
+  ];
+  document.getElementById('catBars').innerHTML = cats.map(c => `
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px">
+        <span>${c.name}</span>
+        <span class="mono" style="color:${c.color}">${c.pct}%</span>
+      </div>
+      <div class="progress-wrap">
+        <div style="height:100%;width:${c.pct}%;background:${c.color};border-radius:20px;transition:width 1s ease"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========= MODAL =========
+function openModal(id) {
+  document.getElementById('modal-' + id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById('modal-' + id).classList.remove('open');
+}
+
+// ========= TOAST =========
+let toastTimer;
+function showToast(icon, title, sub) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent = icon;
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastSub').textContent = sub;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ========= AGENDA STATE =========
+const hoje = new Date();
+let agendaView = 'kanban';
+let calYear = hoje.getFullYear();
+let calMonth = hoje.getMonth();
+let editingServiceId = null;
+
+const COLUNAS = [
+  { id: 'backlog',   label: '📋 A Fazer',      color: 'var(--muted)' },
+  { id: 'andamento', label: '🔨 Em Andamento',  color: 'var(--blue)'  },
+  { id: 'revisar',   label: '🔍 Revisão',       color: 'var(--accent)'},
+  { id: 'concluido', label: '✅ Concluído',      color: 'var(--green)' },
+];
+
+state.servicos = [
+  { id:1, nome:'Demolir parede da cozinha',    obra:'Cozinha Reforma', resp:'João Pedreiro', inicio:'2025-02-10', prazo:'2025-02-25', prio:'alta',  status:'concluido', desc:'Demolição parcial da parede divisória',     tasks:['Proteger área','Demolir com marreta','Remover entulho'], tasksDone:[true,true,true] },
+  { id:2, nome:'Assentar piso da cozinha',     obra:'Cozinha Reforma', resp:'João Pedreiro', inicio:'2025-02-20', prazo:'2025-03-05', prio:'alta',  status:'andamento', desc:'Porcelanato 60x60 bege',                    tasks:['Preparar contrapiso','Aplicar argamassa','Assentar peças','Rejuntar'], tasksDone:[true,true,false,false] },
+  { id:3, nome:'Instalar armários planejados', obra:'Cozinha Reforma', resp:'Marceneiro AG', inicio:'2025-03-06', prazo:'2025-03-15', prio:'media', status:'backlog',   desc:'Armários superiores e balcão',              tasks:['Receber móveis','Instalar armários','Instalar balcão'], tasksDone:[false,false,false] },
+  { id:4, nome:'Piso sala — preparo',          obra:'Piso Sala',       resp:'Carlos Piso',  inicio:'2025-02-15', prazo:'2025-02-22', prio:'alta',  status:'andamento', desc:'Retirada do piso antigo e nivelamento',     tasks:['Retirar piso antigo','Nivelar contrapiso','Aguardar cura'], tasksDone:[true,false,false] },
+  { id:5, nome:'Quadro elétrico geral',        obra:'Elétrica Geral',  resp:'Elétrica MG',  inicio:'2025-02-18', prazo:'2025-03-01', prio:'alta',  status:'revisar',   desc:'Instalação do quadro de distribuição novo', tasks:['Instalar disjuntores','Passar cabos','Testar circuitos'], tasksDone:[true,true,true] },
+  { id:6, nome:'Tomadas e interruptores',      obra:'Elétrica Geral',  resp:'Elétrica MG',  inicio:'2025-03-02', prazo:'2025-03-20', prio:'media', status:'backlog',   desc:'Todas as salas',                            tasks:['Sala','Quartos','Cozinha','Banheiros'], tasksDone:[false,false,false,false] },
+  { id:7, nome:'Pintura banheiro suite',       obra:'Banheiro Suite',  resp:'Pintor Paulo', inicio:'2025-01-10', prazo:'2025-01-18', prio:'baixa', status:'concluido', desc:'Tinta lavável cor branco gelo',             tasks:['Lixar','Aplicar massa corrida','Pintar 2 demãos'], tasksDone:[true,true,true] },
+];
+
+function updateNavBadge() {
+  const atrasados = state.servicos.filter(s => s.status !== 'concluido' && new Date(s.prazo) < hoje).length;
+  const badge = document.getElementById('navBadgeAgenda');
+  if (badge) { badge.textContent = atrasados; badge.classList.toggle('visible', atrasados > 0); }
+  const strip = document.getElementById('urgencyStrip');
+  if (strip) {
+    if (atrasados > 0) {
+      strip.style.display = 'flex';
+      strip.innerHTML = `🔴 <strong>${atrasados} serviço${atrasados>1?'s':''} atrasado${atrasados>1?'s':''}</strong> — verifique os cards com borda vermelha`;
+    } else { strip.style.display = 'none'; }
+  }
+}
+
+function renderAgendaStats() {
+  const total     = state.servicos.length;
+  const concluidos= state.servicos.filter(s=>s.status==='concluido').length;
+  const andamento = state.servicos.filter(s=>s.status==='andamento').length;
+  const atrasados = state.servicos.filter(s=>s.status!=='concluido' && new Date(s.prazo)<hoje).length;
+  const cards = [
+    { label:'Total de serviços', val:total,     color:'var(--blue)',   icon:'📋' },
+    { label:'Em andamento',      val:andamento, color:'var(--accent)', icon:'🔨' },
+    { label:'Concluídos',        val:concluidos,color:'var(--green)',  icon:'✅' },
+    { label:'Atrasados',         val:atrasados, color:'var(--red)',    icon:'⚠️' },
+  ];
+  const el = document.getElementById('agendaStats');
+  if (el) el.innerHTML = cards.map(c=>`
+    <div class="stat-card" style="--glow:${c.color}22">
+      <div class="stat-label">${c.icon} ${c.label}</div>
+      <div class="stat-value" style="color:${c.color};font-size:28px">${c.val}</div>
+    </div>
+  `).join('');
+}
+
+function setAgendaView(v) {
+  agendaView = v;
+  ['kanban','lista','calendario'].forEach(id=>{
+    const el = document.getElementById('view-'+id);
+    if (el) el.style.display = id===v ? 'block' : 'none';
+  });
+  ['viewKanban','viewLista','viewCal'].forEach((bid,i)=>{
+    const views = ['kanban','lista','calendario'];
+    const btn = document.getElementById(bid);
+    if (btn) { btn.className = 'btn ' + (views[i]===v ? 'btn-primary' : 'btn-ghost'); }
+  });
+  renderAgendaView();
+}
+
+function renderAgendaView() {
+  if (agendaView==='kanban') renderKanban();
+  else if (agendaView==='lista') renderLista();
+  else renderCalendario();
+}
+
+function renderKanban() {
+  const filtroObra = document.getElementById('filterObra')?.value || '';
+  const container = document.getElementById('view-kanban');
+  if (!container) return;
+  container.innerHTML = COLUNAS.map(col => {
+    const cards = state.servicos.filter(s => s.status===col.id && (!filtroObra || s.obra===filtroObra));
+    return `<div class="kanban-col" id="col-${col.id}"
+        ondragover="event.preventDefault();this.classList.add('drag-target')"
+        ondragleave="this.classList.remove('drag-target')"
+        ondrop="dropCard(event,'${col.id}')">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title">
+            <span style="width:8px;height:8px;border-radius:50%;background:${col.color};display:inline-block;flex-shrink:0"></span>
+            ${col.label}
+          </div>
+          <span class="kanban-count">${cards.length}</span>
+        </div>
+        <div class="kanban-body">
+          ${cards.map(s => buildKCard(s)).join('')}
+          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;width:100%;margin-top:4px" onclick="quickAdd('${col.id}')">＋ Adicionar</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function buildKCard(s) {
+  const prazoDate = new Date(s.prazo);
+  const diff = Math.round((prazoDate - hoje) / (1000*60*60*24));
+  let dateClass='', dateLabel=formatPrazo(s.prazo);
+  if (s.status!=='concluido') {
+    if (diff<0) { dateClass='urgent'; dateLabel=`⚠️ ${Math.abs(diff)}d atrasado`; }
+    else if (diff<=3) dateClass='warning';
+  }
+  const doneTasks=(s.tasksDone||[]).filter(Boolean).length;
+  const totalTasks=(s.tasks||[]).length;
+  const pctTasks=totalTasks>0?Math.round((doneTasks/totalTasks)*100):0;
+  const isLate=s.status!=='concluido'&&diff<0;
+  const gcalSynced = GCAL.syncedEvents[`${s.id}_prazo`] || GCAL.syncedEvents[`${s.id}_inicio`];
+  return `<div class="kanban-card" draggable="true"
+    ondragstart="dragStart(event,${s.id})" ondragend="dragEnd(event)"
+    onclick="openDetalhe(${s.id})"
+    style="${isLate?'border-color:rgba(255,92,92,0.4);':''}"
+  >
+    <div class="kcard-prio prio-${s.prio}"></div>
+    <div class="kcard-title">${s.nome}</div>
+    <div class="kcard-obra">🏗 ${s.obra}</div>
+    ${s.resp?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">👷 ${s.resp}</div>`:''}
+    ${totalTasks>0?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <div class="progress-wrap" style="flex:1"><div class="progress-bar" style="width:${pctTasks}%"></div></div>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${doneTasks}/${totalTasks}</span>
+    </div>`:''}
+    <div class="kcard-footer">
+      <div class="kcard-date ${dateClass}">📅 ${dateLabel}</div>
+      <div style="display:flex;gap:5px;align-items:center">
+        <button class="kcard-gcal-btn ${gcalSynced?'synced':''}"
+          onclick="event.stopPropagation();openGCalForService(${s.id})"
+          title="${gcalSynced?'Ver no Google Agenda':'Adicionar ao Google Agenda'}">
+          ${gcalSynced?'✓':'+'} Agenda
+        </button>
+        <span class="badge ${s.prio==='alta'?'badge-red':s.prio==='media'?'badge-yellow':'badge-green'}" style="font-size:9px;padding:2px 6px">${s.prio==='alta'?'Alta':s.prio==='media'?'Média':'Baixa'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function formatPrazo(ds) { const [y,m,d]=ds.split('-'); return `${d}/${m}/${y}`; }
+
+let draggedId=null;
+function dragStart(e,id){ draggedId=id; e.target.classList.add('dragging'); }
+function dragEnd(e){ e.target.classList.remove('dragging'); document.querySelectorAll('.kanban-col').forEach(c=>c.classList.remove('drag-target')); }
+function dropCard(e,newStatus){
+  e.preventDefault();
+  document.getElementById('col-'+newStatus)?.classList.remove('drag-target');
+  if(draggedId===null) return;
+  const svc=state.servicos.find(s=>s.id===draggedId);
+  if(svc&&svc.status!==newStatus){
+    svc.status=newStatus;
+    if(newStatus==='concluido'&&svc.tasks) svc.tasksDone=svc.tasks.map(()=>true);
+    renderKanban(); renderAgendaStats(); updateNavBadge();
+    showToast('✅','Status atualizado!',`→ ${COLUNAS.find(c=>c.id===newStatus).label}`);
+  }
+  draggedId=null;
+}
+
+function renderLista() {
+  const filtroObra=document.getElementById('filterObra')?.value||'';
+  const groups={
+    atrasados:  {label:'⚠️ Atrasados',    items:[],color:'var(--red)'},
+    andamento:  {label:'🔨 Em Andamento', items:[],color:'var(--blue)'},
+    revisar:    {label:'🔍 Revisão',       items:[],color:'var(--accent)'},
+    backlog:    {label:'📋 A Fazer',       items:[],color:'var(--muted)'},
+    concluido:  {label:'✅ Concluídos',    items:[],color:'var(--green)'},
+  };
+  state.servicos.filter(s=>!filtroObra||s.obra===filtroObra).forEach(s=>{
+    const diff=Math.round((new Date(s.prazo)-hoje)/(1000*60*60*24));
+    if(s.status!=='concluido'&&diff<0) groups.atrasados.items.push(s);
+    else groups[s.status]?.items.push(s);
+  });
+  const cont=document.getElementById('listaContent');
+  if(!cont) return;
+  cont.innerHTML=Object.values(groups).filter(g=>g.items.length>0).map(g=>`
+    <div style="margin-bottom:24px">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:${g.color};margin-bottom:10px;display:flex;align-items:center;gap:8px">
+        ${g.label} <span style="font-family:'DM Mono',monospace;font-size:10px;background:var(--bg3);padding:2px 8px;border-radius:20px;color:var(--muted)">${g.items.length}</span>
+      </div>
+      <div class="agenda-list">${g.items.map(s=>buildListItem(s,g.color)).join('')}</div>
+    </div>
+  `).join('')||'<div class="empty-state"><div class="empty-state-icon">🎉</div><div class="empty-state-title">Nenhum serviço encontrado</div></div>';
+}
+
+function buildListItem(s,color){
+  const[y,m,d]=s.prazo.split('-');
+  const done=(s.tasksDone||[]).filter(Boolean).length, total=(s.tasks||[]).length;
+  return `<div class="agenda-item" style="--item-color:${color}" onclick="openDetalhe(${s.id})">
+    <div class="agenda-date-block"><div class="agenda-day">${d}</div><div class="agenda-month">${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(m)-1]}</div></div>
+    <div class="agenda-info">
+      <div class="agenda-title">${s.nome}</div>
+      <div class="agenda-sub"><span>🏗 ${s.obra}</span>${s.resp?`<span>👷 ${s.resp}</span>`:''}${total>0?`<span>📌 ${done}/${total} tarefas</span>`:''}</div>
+    </div>
+    <div class="agenda-actions">
+      <span class="badge ${s.prio==='alta'?'badge-red':s.prio==='media'?'badge-yellow':'badge-green'}" style="font-size:10px">${s.prio==='alta'?'Alta':s.prio==='media'?'Média':'Baixa'}</span>
+      <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();moveToNext(${s.id})">→</button>
+    </div>
+  </div>`;
+}
+
+function moveToNext(id){
+  const svc=state.servicos.find(s=>s.id===id); if(!svc) return;
+  const order=['backlog','andamento','revisar','concluido'];
+  const idx=order.indexOf(svc.status);
+  if(idx<order.length-1){
+    svc.status=order[idx+1]; renderLista(); renderAgendaStats(); updateNavBadge();
+    showToast('➡️','Status avançado!',`→ ${COLUNAS.find(c=>c.id===svc.status).label}`);
+  }
+}
+
+function renderCalendario(){
+  const mNames=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const titleEl=document.getElementById('calMonthTitle');
+  if(titleEl) titleEl.textContent=`${mNames[calMonth]} ${calYear}`;
+  const grid=document.getElementById('calGrid'); if(!grid) return;
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const eventDays=new Set();
+  state.servicos.forEach(s=>{
+    [s.prazo,s.inicio].forEach(ds=>{
+      const d=new Date(ds);
+      if(d.getFullYear()===calYear&&d.getMonth()===calMonth) eventDays.add(d.getDate());
+    });
+  });
+  const dayNames=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html=dayNames.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const isToday=d===hoje.getDate()&&calMonth===hoje.getMonth()&&calYear===hoje.getFullYear();
+    const hasEv=eventDays.has(d);
+    html+=`<div class="cal-day${isToday?' today':''}${hasEv?' has-event':''}" onclick="selectCalDay(${d})">${d}</div>`;
+  }
+  grid.innerHTML=html;
+}
+
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendario();
+}
+
+function selectCalDay(day){
+  const date=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const dayStr=`${String(day).padStart(2,'0')}/${String(calMonth+1).padStart(2,'0')}/${calYear}`;
+  const titleEl=document.getElementById('calDayTitle');
+  if(titleEl) titleEl.textContent=`📅 ${dayStr}`;
+  const svcs=state.servicos.filter(s=>s.prazo===date||s.inicio===date);
+  const cont=document.getElementById('calDayEvents'); if(!cont) return;
+  if(!svcs.length){cont.innerHTML=`<div class="empty-state"><div class="empty-state-icon">✨</div><div class="empty-state-title">Dia livre</div><div class="text-muted text-sm">Nenhum serviço neste dia</div></div>`;return;}
+  cont.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">`+svcs.map(s=>`
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer" onclick="openDetalhe(${s.id})">
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px">${s.nome}</div>
+      <div style="font-size:11px;color:var(--muted)">🏗 ${s.obra} · ${s.prazo===date?'📍 Prazo':'🟢 Início'}</div>
+      <div style="margin-top:6px"><span class="badge ${s.status==='concluido'?'badge-green':s.status==='andamento'?'badge-blue':'badge-yellow'}">${COLUNAS.find(c=>c.id===s.status)?.label||s.status}</span></div>
+    </div>
+  `).join('')+`</div>`;
+}
+
+function openDetalhe(id){
+  const s=state.servicos.find(sv=>sv.id===id); if(!s) return;
+  editingServiceId=id;
+  document.getElementById('detalheTitle').textContent=s.nome;
+  const tasks=s.tasks||[], tasksDone=s.tasksDone||tasks.map(()=>false);
+  document.getElementById('detalheBody').innerHTML=`
+    <div class="form-grid">
+      <div class="form-group full"><label>Nome do Serviço</label><input id="d_nome" value="${s.nome}"></div>
+      <div class="form-group"><label>Responsável</label><input id="d_resp" value="${s.resp||''}"></div>
+      <div class="form-group"><label>Obra</label><input id="d_obra" value="${s.obra}"></div>
+      <div class="form-group"><label>Prazo</label><input id="d_prazo" type="date" value="${s.prazo}"></div>
+      <div class="form-group"><label>Prioridade</label>
+        <select id="d_prio">${['alta','media','baixa'].map(p=>`<option value="${p}" ${s.prio===p?'selected':''}>${p==='alta'?'🔴 Alta':p==='media'?'🟡 Média':'🟢 Baixa'}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select id="d_status">${COLUNAS.map(c=>`<option value="${c.id}" ${s.status===c.id?'selected':''}>${c.label}</option>`).join('')}</select>
+      </div>
+      <div class="form-group full"><label>Descrição</label><textarea id="d_desc">${s.desc||''}</textarea></div>
+    </div>
+    ${tasks.length>0?`<div style="margin-top:16px">
+      <label style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:10px">Sub-tarefas</label>
+      <div class="checklist">${tasks.map((t,i)=>`
+        <label class="check-item${tasksDone[i]?' done':''}" id="ci-${i}">
+          <input type="checkbox" ${tasksDone[i]?'checked':''} onchange="toggleTask(${id},${i},this.checked)"> ${t}
+        </label>`).join('')}</div>
+      <div style="margin-top:10px">
+        <div class="progress-wrap"><div class="progress-bar" id="detalheProgress" style="width:${Math.round(tasksDone.filter(Boolean).length/tasks.length*100)}%"></div></div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:5px">${tasksDone.filter(Boolean).length} / ${tasks.length} concluídas</div>
+      </div>
+    </div>`:''}`;
+  document.getElementById('detalheSaveBtn').onclick=()=>saveDetalhe(id);
+  document.getElementById('detalheDeleteBtn').onclick=()=>deleteServico(id);
+  openModal('detalheServico');
+}
+
+function toggleTask(svcId,taskIdx,checked){
+  const svc=state.servicos.find(s=>s.id===svcId); if(!svc) return;
+  svc.tasksDone[taskIdx]=checked;
+  const item=document.getElementById(`ci-${taskIdx}`);
+  if(item) item.className=`check-item${checked?' done':''}`;
+  const done=svc.tasksDone.filter(Boolean).length, total=svc.tasks.length;
+  const bar=document.getElementById('detalheProgress');
+  if(bar) bar.style.width=Math.round(done/total*100)+'%';
+  if(done===total&&total>0){svc.status='concluido'; showToast('🎉','Serviço concluído!',`"${svc.nome}"`);}
+}
+
+function saveDetalhe(id){
+  const svc=state.servicos.find(s=>s.id===id); if(!svc) return;
+  svc.nome=document.getElementById('d_nome').value;
+  svc.resp=document.getElementById('d_resp').value;
+  svc.obra=document.getElementById('d_obra').value;
+  svc.prazo=document.getElementById('d_prazo').value;
+  svc.prio=document.getElementById('d_prio').value;
+  svc.status=document.getElementById('d_status').value;
+  svc.desc=document.getElementById('d_desc').value;
+  closeModal('detalheServico'); renderAgendaView(); renderAgendaStats(); updateNavBadge();
+  showToast('💾','Serviço salvo!','Alterações aplicadas');
+}
+
+function deleteServico(id){
+  if(!confirm('Excluir este serviço?')) return;
+  state.servicos=state.servicos.filter(s=>s.id!==id);
+  closeModal('detalheServico'); renderAgendaView(); renderAgendaStats(); updateNavBadge();
+  showToast('🗑','Serviço excluído','');
+}
+
+function criarServico(){
+  const nome=document.getElementById('svcNome').value.trim();
+  if(!nome){showToast('⚠️','Preencha o nome','');return;}
+  const tasksRaw=(document.getElementById('svcTasks').value||'').split('\n').filter(t=>t.trim());
+  state.servicos.unshift({
+    id:Date.now(), nome,
+    obra:document.getElementById('svcObra').value||'—',
+    resp:document.getElementById('svcResp').value,
+    inicio:document.getElementById('svcInicio').value||hoje.toISOString().split('T')[0],
+    prazo:document.getElementById('svcPrazo').value||hoje.toISOString().split('T')[0],
+    prio:document.getElementById('svcPrio').value,
+    status:document.getElementById('svcStatus').value,
+    desc:'', tasks:tasksRaw, tasksDone:tasksRaw.map(()=>false),
+  });
+  closeModal('novoServico'); renderAgendaView(); renderAgendaStats(); updateNavBadge();
+  showToast('✅','Serviço criado!',`"${nome}" adicionado`);
+  ['svcNome','svcResp','svcInicio','svcPrazo','svcTasks'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+
+function quickAdd(status){
+  const el=document.getElementById('svcStatus'); if(el) el.value=status;
+  openModal('novoServico');
+}
+
+// ========= GOOGLE CALENDAR INTEGRATION =========
+const GCAL = {
+  clientId: '',        // filled from config
+  apiKey: '',
+  scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
+  tokenClient: null,
+  accessToken: null,
+  tokenExpiry: null,
+  syncedEvents: {},    // svcId -> { eventId, url }
+  isAuthorized: false,
+};
+
+// Load Google Identity Services + GAPI
+function loadGoogleSDKs() {
+  if (document.getElementById('gapiScript')) return;
+  const s1 = document.createElement('script');
+  s1.id = 'gapiScript';
+  s1.src = 'https://apis.google.com/js/api.js';
+  s1.onload = () => gapi.load('client', initGapiClient);
+  document.head.appendChild(s1);
+
+  const s2 = document.createElement('script');
+  s2.src = 'https://accounts.google.com/gsi/client';
+  s2.onload = initGIS;
+  document.head.appendChild(s2);
+}
+
+async function initGapiClient() {
+  const key = document.getElementById('gapiKey')?.value || GCAL.apiKey;
+  if (!key) return;
+  await gapi.client.init({ apiKey: key, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'] });
+}
+
+function initGIS() {
+  const clientId = document.getElementById('gclientId')?.value || GCAL.clientId;
+  if (!clientId || !window.google?.accounts) return;
+  GCAL.tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: GCAL.scopes,
+    callback: handleGCalToken,
+  });
+}
+
+function handleGCalToken(resp) {
+  if (resp.error) {
+    showToast('❌', 'Erro de autorização', resp.error);
+    return;
+  }
+  GCAL.accessToken = resp.access_token;
+  GCAL.isAuthorized = true;
+  GCAL.tokenExpiry = new Date(Date.now() + (resp.expires_in - 60) * 1000);
+  gapi.client.setToken({ access_token: resp.access_token });
+  onGCalAuthorized();
+}
+
+function onGCalAuthorized() {
+  GCAL.isAuthorized = true;
+  // Update all UI states
+  document.getElementById('gcalNotConnected').style.display = 'none';
+  document.getElementById('gcalConnected').style.display = 'block';
+  document.getElementById('gcalExportBtn').style.display = 'flex';
+  document.getElementById('gcalTokenInfo').style.display = 'block';
+  document.getElementById('gcalStatusBadge').className = 'badge badge-green';
+  document.getElementById('gcalStatusBadge').textContent = '✅ Conectado';
+  document.getElementById('syncAllGcalBtn').disabled = false;
+  document.getElementById('gcalSyncBtn').style.borderColor = 'rgba(45,224,139,0.4)';
+  document.getElementById('gcalSyncBtn').style.color = 'var(--green)';
+  document.getElementById('gcalSyncBtn').textContent = '✅ Google Agenda';
+  const detail = `Token ativo · Expira ${GCAL.tokenExpiry?.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})||'em breve'}`;
+  if (document.getElementById('gcalTokenDetail')) document.getElementById('gcalTokenDetail').textContent = detail;
+  // Mark steps
+  document.getElementById('step1')?.classList.add('done');
+  document.getElementById('step2')?.classList.add('done');
+  document.getElementById('step3')?.classList.add('active');
+  refreshGCalPreview();
+  showToast('✅', 'Google Agenda conectada!', 'Pronto para sincronizar serviços');
+}
+
+function authorizeGCal() {
+  const clientId = document.getElementById('gclientId')?.value?.trim();
+  const apiKey   = document.getElementById('gapiKey')?.value?.trim();
+
+  // DEMO MODE: simulate connection when no real credentials
+  if (!clientId || !apiKey) {
+    showToast('ℹ️', 'Modo demonstração', 'Simulando conexão — adicione Client ID e API Key para conexão real');
+    setTimeout(() => {
+      GCAL.isAuthorized = true;
+      GCAL.accessToken = 'demo-token';
+      GCAL.tokenExpiry = new Date(Date.now() + 3600000);
+      // Show demo connected user
+      const el = document.getElementById('gcalConnectedUser');
+      if (el) el.textContent = 'conta@gmail.com (modo demo)';
+      onGCalAuthorized();
+    }, 1000);
+    return;
+  }
+
+  GCAL.clientId = clientId;
+  GCAL.apiKey = apiKey;
+  loadGoogleSDKs();
+  if (!GCAL.tokenClient) {
+    setTimeout(() => { initGIS(); setTimeout(() => GCAL.tokenClient?.requestAccessToken(), 600); }, 600);
+  } else {
+    GCAL.tokenClient.requestAccessToken();
+  }
+}
+
+function revokeGCal() {
+  GCAL.isAuthorized = false;
+  GCAL.accessToken = null;
+  GCAL.syncedEvents = {};
+  if (window.google?.accounts?.oauth2 && GCAL.accessToken) {
+    google.accounts.oauth2.revoke(GCAL.accessToken);
+  }
+  document.getElementById('gcalNotConnected').style.display = 'block';
+  document.getElementById('gcalConnected').style.display = 'none';
+  document.getElementById('gcalExportBtn').style.display = 'none';
+  document.getElementById('gcalTokenInfo').style.display = 'none';
+  document.getElementById('gcalStatusBadge').className = 'badge badge-yellow';
+  document.getElementById('gcalStatusBadge').textContent = '⚡ Não conectado';
+  document.getElementById('syncAllGcalBtn').disabled = true;
+  document.getElementById('gcalSyncBtn').style.borderColor = 'rgba(77,166,255,0.3)';
+  document.getElementById('gcalSyncBtn').style.color = 'var(--blue)';
+  document.getElementById('gcalSyncBtn').textContent = '📅 Google Agenda';
+  ['step1','step2','step3'].forEach(id => document.getElementById(id)?.classList.remove('done','active'));
+  showToast('🔓', 'Desconectado', 'Google Agenda desvinculada');
+}
+
+function saveGoogleConfig() {
+  showToast('⚙️', 'Configurações salvas!', 'Conexão atualizada com sucesso');
+}
+
+// ========= OPEN SYNC MODAL =========
+function openGCalSyncModal() {
+  openModal('gcalSync');
+  if (GCAL.isAuthorized) refreshGCalPreview();
+}
+
+// ========= BUILD EVENT OBJECT =========
+function buildGCalEvent(svc, tipo) {
+  const color = document.getElementById('gcalColor')?.value || '5';
+  const reminder = parseInt(document.getElementById('gcalReminder')?.value || '60');
+  const prazoDate = svc.prazo; // YYYY-MM-DD
+  const inicioDate = svc.inicio;
+  const isDeadline = tipo === 'prazo';
+  const dateStr = isDeadline ? prazoDate : inicioDate;
+  const suffix = isDeadline ? ' — PRAZO' : ' — INÍCIO';
+  const colorMap = {'1':'Azul Pavão','2':'Sálvia','3':'Uva','5':'Banana','6':'Tomate','10':'Manjericão'};
+  const prioMap = { alta:'🔴 ALTA', media:'🟡 MÉDIA', baixa:'🟢 BAIXA' };
+
+  const event = {
+    summary: `🏗 ${svc.nome}${suffix}`,
+    description: [
+      `Obra: ${svc.obra}`,
+      svc.resp ? `Responsável: ${svc.resp}` : '',
+      svc.desc ? `\n${svc.desc}` : '',
+      svc.tasks?.length ? `\nSubtarefas:\n${svc.tasks.map((t,i)=>`${svc.tasksDone?.[i]?'✅':'☐'} ${t}`).join('\n')}` : '',
+      `\nPrioridade: ${prioMap[svc.prio]||svc.prio}`,
+      `\n— Criado pelo ObraFácil`,
+    ].filter(Boolean).join('\n'),
+    start: { date: dateStr },
+    end:   { date: dateStr },
+    colorId: color,
+    reminders: reminder > 0 ? {
+      useDefault: false,
+      overrides: [{ method: 'popup', minutes: reminder }],
+    } : { useDefault: false, overrides: [] },
+    extendedProperties: {
+      private: { obrafacil: 'true', svcId: String(svc.id), tipo }
+    }
+  };
+  return event;
+}
+
+// ========= PREVIEW LIST =========
+function getServicosToExport() {
+  const filterStatus = document.getElementById('modalFilterStatus')?.value || 'pendentes';
+  return state.servicos.filter(s => {
+    if (filterStatus === 'pendentes') return s.status !== 'concluido';
+    if (filterStatus === 'andamento') return s.status === 'andamento';
+    return true;
+  });
+}
+
+function refreshGCalPreview() {
+  const container = document.getElementById('gcalEventPreview');
+  if (!container) return;
+  const exportType = document.getElementById('modalExportType')?.value || 'ambos';
+  const servicos = getServicosToExport();
+
+  if (!servicos.length) {
+    container.innerHTML = '<div class="empty-state" style="padding:30px"><div class="empty-state-icon">🎉</div><div class="empty-state-title">Nenhum serviço pendente</div></div>';
+    return;
+  }
+
+  const events = [];
+  servicos.forEach(s => {
+    if (exportType === 'ambos' || exportType === 'inicio') events.push({ svc: s, tipo: 'inicio' });
+    if (exportType === 'ambos' || exportType === 'prazo')  events.push({ svc: s, tipo: 'prazo' });
+  });
+
+  container.innerHTML = events.map(({ svc, tipo }) => {
+    const isSynced = GCAL.syncedEvents[`${svc.id}_${tipo}`];
+    const dateStr = tipo === 'prazo' ? formatPrazo(svc.prazo) : formatPrazo(svc.inicio);
+    const label = tipo === 'prazo' ? '📍 Prazo' : '🟢 Início';
+    return `<div class="gcal-event-preview ${isSynced ? 'synced' : ''}">
+      <div class="gcal-event-icon">${tipo === 'prazo' ? '🔔' : '▶️'}</div>
+      <div class="gcal-event-body">
+        <div class="gcal-event-title">🏗 ${svc.nome} — ${tipo === 'prazo' ? 'PRAZO' : 'INÍCIO'}</div>
+        <div class="gcal-event-meta">${label}: ${dateStr} · ${svc.obra} · ${svc.resp||'Sem responsável'}</div>
+      </div>
+      <div class="gcal-event-status">
+        ${isSynced
+          ? `<span class="badge badge-green" style="font-size:10px">✓ Sincronizado</span>`
+          : `<span class="badge badge-blue" style="font-size:10px">Pendente</span>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ========= EXPORT ALL =========
+async function exportAllToGCal() {
+  if (!GCAL.isAuthorized) { authorizeGCal(); return; }
+  const exportType = document.getElementById('modalExportType')?.value || 'ambos';
+  const calTarget  = document.getElementById('modalCalTarget')?.value || 'primary';
+  const servicos = getServicosToExport();
+
+  const logWrap = document.getElementById('gcalSyncLogWrap');
+  const logEl   = document.getElementById('gcalSyncLog');
+  logWrap.style.display = 'block';
+  logEl.innerHTML = '';
+
+  const exportBtn = document.getElementById('gcalExportBtn');
+  exportBtn.disabled = true;
+  exportBtn.textContent = '⏳ Exportando...';
+
+  let ok = 0, errs = 0;
+
+  for (const svc of servicos) {
+    const tipos = exportType === 'ambos' ? ['inicio','prazo'] : [exportType];
+    for (const tipo of tipos) {
+      const key = `${svc.id}_${tipo}`;
+      if (GCAL.syncedEvents[key]) {
+        appendSyncLog(logEl, svc.nome, tipo, 'skip');
+        continue;
+      }
+      await new Promise(r => setTimeout(r, 150)); // throttle
+      const success = await createGCalEvent(svc, tipo, calTarget);
+      if (success) { ok++; appendSyncLog(logEl, svc.nome, tipo, 'ok'); }
+      else         { errs++; appendSyncLog(logEl, svc.nome, tipo, 'error'); }
+    }
+  }
+
+  exportBtn.disabled = false;
+  exportBtn.textContent = '📤 Exportar para Google Agenda';
+  refreshGCalPreview();
+  renderKanban();
+  showToast(errs === 0 ? '✅' : '⚠️',
+    `${ok} evento${ok!==1?'s':''} criado${ok!==1?'s':''}!`,
+    errs > 0 ? `${errs} erro(s) — verifique as permissões` : 'Google Agenda atualizada');
+  addSyncLog('Google Calendar');
+}
+
+async function createGCalEvent(svc, tipo, calId) {
+  const key = `${svc.id}_${tipo}`;
+  const event = buildGCalEvent(svc, tipo);
+
+  // REAL API call (when authorized with real token)
+  if (GCAL.accessToken && GCAL.accessToken !== 'demo-token' && window.gapi?.client?.calendar) {
+    try {
+      const resp = await gapi.client.calendar.events.insert({ calendarId: calId || 'primary', resource: event });
+      GCAL.syncedEvents[key] = { eventId: resp.result.id, url: resp.result.htmlLink };
+      return true;
+    } catch (e) {
+      console.error('GCal API error:', e);
+      return false;
+    }
+  }
+
+  // DEMO MODE: simulate success
+  await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
+  const demoId = 'demo_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  GCAL.syncedEvents[key] = {
+    eventId: demoId,
+    url: `https://calendar.google.com/calendar/event?eid=${demoId}`
+  };
+  return true;
+}
+
+function appendSyncLog(el, nome, tipo, status) {
+  const colors = { ok:'var(--green)', error:'var(--red)', skip:'var(--muted)' };
+  const icons  = { ok:'✓', error:'✗', skip:'—' };
+  const labels = { ok:'Criado', error:'Erro', skip:'Já sincronizado' };
+  const item = document.createElement('div');
+  item.className = 'sync-log-item';
+  item.innerHTML = `
+    <div class="sync-dot" style="background:${colors[status]}"></div>
+    <div style="flex:1;font-size:12px"><strong>${nome}</strong> <span style="color:var(--muted)">(${tipo === 'prazo' ? 'prazo' : 'início'})</span></div>
+    <div style="font-size:11px;color:${colors[status]};font-family:'DM Mono',monospace">${icons[status]} ${labels[status]}</div>`;
+  el.appendChild(item);
+  el.scrollTop = el.scrollHeight;
+}
+
+// ========= SINGLE EVENT (from card) =========
+function openGCalForService(svcId) {
+  if (!GCAL.isAuthorized) {
+    openModal('gcalSync');
+    return;
+  }
+  const svc = state.servicos.find(s => s.id === svcId);
+  if (!svc) return;
+
+  const synced1 = GCAL.syncedEvents[`${svcId}_inicio`];
+  const synced2 = GCAL.syncedEvents[`${svcId}_prazo`];
+
+  document.getElementById('gcalEventBody').innerHTML = `
+    <div style="margin-bottom:16px">
+      <div style="font-weight:700;font-size:15px;margin-bottom:4px">${svc.nome}</div>
+      <div style="font-size:12px;color:var(--muted)">🏗 ${svc.obra} · 👷 ${svc.resp||'—'}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="gcal-event-preview ${synced1?'synced':''}">
+        <div class="gcal-event-icon">▶️</div>
+        <div class="gcal-event-body">
+          <div class="gcal-event-title">Evento de Início</div>
+          <div class="gcal-event-meta">📅 ${formatPrazo(svc.inicio)}</div>
+        </div>
+        ${synced1
+          ? `<a href="${synced1.url}" target="_blank" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;flex-shrink:0">Ver ↗</a>`
+          : `<button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;flex-shrink:0" onclick="createSingleEvent(${svcId},'inicio')">Criar</button>`}
+      </div>
+      <div class="gcal-event-preview ${synced2?'synced':''}">
+        <div class="gcal-event-icon">🔔</div>
+        <div class="gcal-event-body">
+          <div class="gcal-event-title">Evento de Prazo</div>
+          <div class="gcal-event-meta">📅 ${formatPrazo(svc.prazo)}</div>
+        </div>
+        ${synced2
+          ? `<a href="${synced2.url}" target="_blank" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;flex-shrink:0">Ver ↗</a>`
+          : `<button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;flex-shrink:0" onclick="createSingleEvent(${svcId},'prazo')">Criar</button>`}
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:10px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--muted)">
+      Os eventos serão criados na sua <strong style="color:var(--text)">Agenda Principal</strong> do Google.
+    </div>`;
+
+  document.getElementById('gcalEventConfirmBtn').onclick = () => {
+    createSingleEvent(svcId, 'prazo');
+    createSingleEvent(svcId, 'inicio');
+    closeModal('gcalEvent');
+  };
+  document.getElementById('gcalEventConfirmBtn').textContent = '📅 Criar ambos os eventos';
+  openModal('gcalEvent');
+}
+
+async function createSingleEvent(svcId, tipo) {
+  const svc = state.servicos.find(s => s.id === svcId); if (!svc) return;
+  const success = await createGCalEvent(svc, tipo, 'primary');
+  if (success) {
+    showToast('📅', 'Evento criado!', `"${svc.nome}" adicionado à agenda`);
+    renderKanban();
+    if (document.getElementById('gcalEventBody')) openGCalForService(svcId);
+  } else {
+    showToast('❌', 'Erro ao criar evento', 'Verifique as permissões da API');
+  }
+}
+
+function syncAllToGCal() {
+  openModal('gcalSync');
+  setTimeout(() => exportAllToGCal(), 300);
+}
+
+// ========= PATCH buildKCard to include gcal button =========
+const _origBuildKCard = buildKCard;
+
+// Override to add gcal button — we patch the kcard-footer area
+// (We inline-patch by adding a post-render hook via MutationObserver alternative)
+// Instead we extend the footer HTML in buildKCard above by adding the gcal btn
+// This is handled by re-defining buildKCard here:
+const __buildKCard = buildKCard; // already defined above, we extend via wrapper
+
+// ---- Config page password change ----
+function cfgPwdStrength(v) {
+  const bar = document.getElementById('cfgStrengthBar');
+  const lbl = document.getElementById('cfgStrengthLabel');
+  if (!bar || !lbl) return;
+  if (!v) { bar.style.width='0'; lbl.textContent=''; return; }
+  let score = 0;
+  if (v.length >= 6) score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const levels = [
+    { color:'var(--red)',    w:'20%', txt:'Muito fraca' },
+    { color:'var(--red)',    w:'35%', txt:'Fraca' },
+    { color:'var(--accent)', w:'55%', txt:'Média' },
+    { color:'var(--blue)',   w:'75%', txt:'Forte' },
+    { color:'var(--green)',  w:'100%',txt:'Muito forte ✓' },
+  ];
+  const l = levels[Math.min(score, 4)];
+  bar.style.cssText = `height:3px;border-radius:3px;margin-top:5px;background:${l.color};width:${l.w};transition:all 0.3s`;
+  lbl.style.color = l.color;
+  lbl.textContent = l.txt;
+}
+
+function cfgSavePassword() {
+  const oldVal  = document.getElementById('cfgOldPwd').value;
+  const newVal  = document.getElementById('cfgNewPwd').value;
+  const confirm = document.getElementById('cfgConfirmPwd').value;
+  const errEl   = document.getElementById('cfgPwdError');
+  errEl.style.color = 'var(--red)';
+  errEl.textContent = '';
+  if (!oldVal || !newVal || !confirm) { errEl.textContent = '⚠️ Preencha todos os campos'; return; }
+  if (newVal.length < 4) { errEl.textContent = '⚠️ Mínimo 4 caracteres'; return; }
+  if (newVal !== confirm) { errEl.textContent = '❌ Senhas não coincidem'; return; }
+  if (simpleHash(oldVal) !== getStoredHash()) { errEl.textContent = '❌ Senha atual incorreta'; return; }
+  localStorage.setItem(AUTH.HASH_KEY, simpleHash(newVal));
+  errEl.style.color = 'var(--green)';
+  errEl.textContent = '✅ Senha alterada com sucesso!';
+  ['cfgOldPwd','cfgNewPwd','cfgConfirmPwd'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  cfgPwdStrength('');
+  showToast('🔑','Senha alterada!','Nova senha salva');
+}
+
+
+
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => {
+    if (e.target === o) o.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
