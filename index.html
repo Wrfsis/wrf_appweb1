@@ -2011,6 +2011,38 @@ const state = {
   pendingFiles: []
 };
 
+// ========= PERSISTÊNCIA =========
+const STATE_KEY = 'obrafacil_state';
+
+function saveState() {
+  try {
+    localStorage.setItem(STATE_KEY, JSON.stringify({
+      orcamentos: state.orcamentos,
+      comprovantes: state.comprovantes
+    }));
+  } catch(e) { console.warn('Erro ao salvar:', e); }
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STATE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.orcamentos)  state.orcamentos  = parsed.orcamentos;
+      if (parsed.comprovantes) state.comprovantes = parsed.comprovantes;
+    }
+  } catch(e) { console.warn('Erro ao carregar:', e); }
+}
+
+function renderAll() {
+  renderDashboard();
+  renderOrcamentos();
+  renderComprovantes();
+  renderChart();
+  renderCategories();
+}
+
+
 // ========= LOGIN =========
 // ========= PASSWORD PROTECTION — versão robusta =========
 const AUTH = {
@@ -2279,6 +2311,14 @@ function doLogin() { checkPassword(); }
 
 // ========= INIT =========
 function initApp() {
+  loadState();
+  // Restaurar configs salvas
+  try {
+    const savedClient = localStorage.getItem('obrafacil_gclient');
+    const savedKey    = localStorage.getItem('obrafacil_gapikey');
+    if (savedClient) { GCAL.clientId = savedClient; const el = document.getElementById('gclientId'); if(el) el.value = savedClient; }
+    if (savedKey)    { GCAL.apiKey   = savedKey;    const el = document.getElementById('gapiKey');   if(el) el.value = savedKey; }
+  } catch(e) {}
   renderDashboard();
   renderOrcamentos();
   renderComprovantes();
@@ -2304,7 +2344,7 @@ function showPage(id, el) {
   };
   document.getElementById('pageTitle').textContent = titles[id] || id;
   if (id === 'agenda') { renderAgendaStats(); renderAgendaView(); updateNavBadge(); }
-  if (id === 'dashboard') { renderDashboard(); renderChart(); }
+  if (id === 'dashboard') { renderDashboard(); renderChart(); renderCategories(); }
 }
 
 // ========= ORÇAMENTOS =========
@@ -2362,12 +2402,11 @@ function criarOrcamento() {
     id: Date.now(), obra: nome, cliente, orcado: valor, gasto: 0,
     prazo: prazo || '—', status: 'andamento'
   });
-  renderOrcamentos();
-  renderDashboard();
+  saveState();
+  renderAll();
   closeModal('novoOrcamento');
+  ['nomeObra','clienteObra','valorOrcado','dataPrazo'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   showToast('✅', 'Orçamento criado!', `"${nome}" adicionado com sucesso`);
-  // Simulate sync
-  setTimeout(() => addSyncLog('Novo orçamento'), 1000);
 }
 
 function verOrcamento(id) {
@@ -2427,10 +2466,12 @@ function excluirOrcamento(id) {
   if (!o) return;
   if (!confirm(`Excluir o orçamento "${o.obra}"?\nEsta ação não pode ser desfeita.`)) return;
   state.orcamentos = state.orcamentos.filter(x => x.id !== id);
-  renderOrcamentos();
-  renderDashboard();
+  saveState();
+  renderAll();
+  // renderDashboard_placeholder();
   renderChart();
   renderCategories();
+  updateDashboardCharts();
   showToast('🗑', 'Orçamento excluído', `"${o.obra}" removido`);
 }
 function renderComprovantes() {
@@ -2461,8 +2502,8 @@ function excluirComprovante(id) {
   if (!c) return;
   if (!confirm(`Excluir o comprovante "${c.arquivo}"?\nEsta ação não pode ser desfeita.`)) return;
   state.comprovantes = state.comprovantes.filter(x => x.id !== id);
-  renderComprovantes();
-  renderDashboard();
+  saveState();
+  renderAll();
   showToast('🗑', 'Comprovante excluído', `"${c.arquivo}" removido`);
 }
 
@@ -2627,7 +2668,8 @@ function saveComprovantes() {
       orcamento: document.getElementById('linkOrcamento').value || '—'
     });
   });
-  renderComprovantes();
+  saveState();
+  renderAll();
   showToast('💾', 'Salvos e sincronizados!', `${state.extractedData.length} comprovante(s) enviados ao Sheets`);
   addSyncLog('Upload comprovantes');
   document.getElementById('saveActions').style.display = 'none';
@@ -2643,19 +2685,50 @@ function clearExtracted() {
 }
 
 // ========= SHEETS =========
+// Atualiza gráficos do dashboard se estiver visível
+function updateDashboardCharts() {
+  renderChart();
+  renderCategories();
+}
+
 function testSheets() {
-  showToast('🟢', 'Conexão OK!', 'Google Sheets respondendo normalmente');
+  const sheetId = document.getElementById('sheetId')?.value?.trim();
+  if (!sheetId) {
+    showToast('⚠️', 'ID da planilha vazio', 'Preencha o ID do Google Sheets nas configurações');
+    return;
+  }
+  showToast('🔄', 'Testando conexão...', 'Verificando acesso ao Google Sheets');
+  setTimeout(() => showToast('✅', 'Conexão simulada OK!', 'Para conexão real, configure o Client ID e API Key'), 1200);
 }
 
 function syncNow() {
+  const sheetId = document.getElementById('sheetId')?.value?.trim();
+  if (!sheetId) {
+    showToast('⚠️', 'Configuração incompleta', 'Preencha o ID da planilha nas Configurações');
+    return;
+  }
   showToast('⚡', 'Sincronizando...', 'Enviando dados ao Google Sheets');
   addSyncLog('Sync manual');
   setTimeout(() => showToast('✅', 'Sync concluído!', `${state.orcamentos.length} orçamentos · ${state.comprovantes.length} comprovantes`), 1500);
 }
 
 function exportToSheets(id) {
-  showToast('📤', 'Enviado ao Sheets!', 'Linha atualizada na planilha');
+  const o = state.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  showToast('📤', 'Exportado!', `"${o.obra}" enviado ao Sheets`);
   addSyncLog('Exportação');
+}
+
+function saveGoogleConfig() {
+  const clientId = document.getElementById('gclientId')?.value?.trim();
+  const apiKey   = document.getElementById('gapiKey')?.value?.trim();
+  if (clientId) GCAL.clientId = clientId;
+  if (apiKey)   GCAL.apiKey   = apiKey;
+  try {
+    if (clientId) localStorage.setItem('obrafacil_gclient', clientId);
+    if (apiKey)   localStorage.setItem('obrafacil_gapikey', apiKey);
+  } catch(e) {}
+  showToast('⚙️', 'Configurações salvas!', clientId ? 'Client ID e API Key armazenados' : 'Campos vazios — preencha para usar a integração real');
 }
 
 function addSyncLog(tipo) {
@@ -2721,38 +2794,64 @@ function renderDashboard() {
 
 
 function renderChart() {
-  const months = ['Jul','Ago','Set','Out','Nov','Dez','Jan'];
-  const values = [8200, 12400, 9800, 15600, 11200, 14800, 9400];
-  const max = Math.max(...values);
   const container = document.getElementById('chartBars');
   if (!container) return;
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const now = new Date();
+  const months = [];
+  const values = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(monthNames[d.getMonth()]);
+    const total = state.orcamentos.reduce((sum, o) => {
+      if (!o.prazo) return sum;
+      const p = new Date(o.prazo);
+      if (p.getMonth() === d.getMonth() && p.getFullYear() === d.getFullYear()) return sum + (o.gasto || 0);
+      return sum;
+    }, 0);
+    values.push(total);
+  }
+  const max = Math.max(...values, 1);
   container.innerHTML = months.map((m, i) => {
-    const h = Math.round((values[i] / max) * 140);
+    const h = Math.max(4, Math.round((values[i] / max) * 140));
+    const val = values[i];
+    const label = val >= 1000 ? 'R$' + (val/1000).toFixed(1).replace('.',',') + 'k' : val > 0 ? 'R$' + val : '—';
     return `<div class="chart-bar-wrap">
-      <div class="chart-bar" style="height:${h}px" title="R$${values[i].toLocaleString('pt-BR')}"></div>
+      <div class="chart-bar" style="height:${h}px;opacity:${val>0?1:0.2}" title="${label}"></div>
       <div class="chart-label">${m}</div>
     </div>`;
   }).join('');
 }
 
 function renderCategories() {
-  const cats = [
-    { name:'Materiais', pct: 48, color: 'var(--accent)' },
-    { name:'Mão de obra', pct: 31, color: 'var(--blue)' },
-    { name:'Ferramentas', pct: 13, color: 'var(--green)' },
-    { name:'Outros', pct: 8, color: 'var(--muted)' },
+  const el = document.getElementById('catBars');
+  if (!el) return;
+  const total = state.orcamentos.reduce((s, o) => s + (o.gasto || 0), 0);
+  if (total === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;font-size:12px">Nenhum gasto registrado</div>';
+    return;
+  }
+  const grupos = [
+    { name:'Em andamento', key:'andamento',    color:'var(--accent)' },
+    { name:'Concluido',    key:'concluido',    color:'var(--green)'  },
+    { name:'Acima orcado', key:'alerta',       color:'var(--red)'    },
+    { name:'Planejamento', key:'planejamento', color:'var(--blue)'   },
   ];
-  document.getElementById('catBars').innerHTML = cats.map(c => `
-    <div style="margin-bottom:14px">
+  const itens = grupos.map(g => {
+    const gasto = state.orcamentos.filter(o => o.status === g.key).reduce((s, o) => s + (o.gasto || 0), 0);
+    const pct = Math.round((gasto / total) * 100);
+    if (pct === 0) return '';
+    return `<div style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px">
-        <span>${c.name}</span>
-        <span class="mono" style="color:${c.color}">${c.pct}%</span>
+        <span>${g.name}</span>
+        <span class="mono" style="color:${g.color}">${pct}%</span>
       </div>
       <div class="progress-wrap">
-        <div style="height:100%;width:${c.pct}%;background:${c.color};border-radius:20px;transition:width 1s ease"></div>
+        <div style="height:100%;width:${pct}%;background:${g.color};border-radius:20px;transition:width 1s ease"></div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).filter(Boolean).join('');
+  el.innerHTML = itens || '<div style="text-align:center;color:var(--muted);padding:20px;font-size:12px">Nenhum dado disponivel</div>';
 }
 
 // ========= MODAL =========
@@ -3256,7 +3355,13 @@ function revokeGCal() {
 }
 
 function saveGoogleConfig() {
-  showToast('⚙️', 'Configurações salvas!', 'Conexão atualizada com sucesso');
+  const clientId = document.getElementById('gclientId')?.value?.trim();
+  const apiKey   = document.getElementById('gapiKey')?.value?.trim();
+  const claudeKey = document.getElementById('claudeKey')?.value?.trim();
+  if (clientId) localStorage.setItem('obrafacil_gclient', clientId);
+  if (apiKey)   localStorage.setItem('obrafacil_gapikey', apiKey);
+  if (claudeKey) localStorage.setItem('obrafacil_claudekey', claudeKey);
+  showToast('✅', 'Configurações salvas!', 'Dados armazenados localmente');
 }
 
 // ========= OPEN SYNC MODAL =========
