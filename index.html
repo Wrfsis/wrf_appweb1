@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ObraFácil — Gestão de Orçamentos</title>
+<title>Assistente — Gestão de Orçamentos</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1059,7 +1059,7 @@
 <div class="login-screen" id="loginScreen">
   <div class="login-card" id="loginCard">
     <span class="lock-icon">🔐</span>
-    <div class="login-logo">ObraFácil</div>
+    <div class="login-logo">Assistente</div>
     <div class="login-tagline">// acesso privado</div>
 
     <div class="pwd-input-wrap">
@@ -1123,7 +1123,7 @@
   </div>
 
   <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:20px;opacity:0.5">
-    v1.0.0 · ObraFácil · uso privado
+    v1.0.0 · Assistente · uso privado
   </div>
 </div>
 
@@ -1133,7 +1133,7 @@
 <!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="logo">
-    <div class="logo-mark">🏗 ObraFácil</div>
+    <div class="logo-mark">🏗 Assistente</div>
     <div class="logo-sub">v1.0 · beta</div>
   </div>
   <div class="nav">
@@ -1161,8 +1161,8 @@
       <span>Escanear IA</span>
     </div>
     <div class="nav-item" onclick="showPage('planilhas', this)">
-      <span class="nav-icon">🟢</span>
-      <span>Planilhas</span>
+      <span class="nav-icon">📤</span>
+      <span>Exportar</span>
     </div>
     <div class="nav-item" onclick="showPage('config', this)">
       <span class="nav-icon">⚙️</span>
@@ -1171,9 +1171,9 @@
   </div>
   <div class="sidebar-bottom">
     <div class="user-chip" onclick="showToast('🔒','Sessão ativa','Expira em 12h · vá em Configurações para trocar a senha')">
-      <div class="avatar" id="userAvatar">OF</div>
+      <div class="avatar" id="userAvatar">AS</div>
       <div>
-        <div class="user-name" id="userName">ObraFácil</div>
+        <div class="user-name" id="userName">Assistente</div>
         <div class="user-email" id="userEmail">acesso privado</div>
       </div>
     </div>
@@ -1188,9 +1188,6 @@
   <div class="topbar">
     <div class="page-title" id="pageTitle">Dashboard</div>
     <div class="topbar-actions">
-      <button class="btn btn-ghost" onclick="showPage('planilhas', document.querySelector('[onclick*=planilhas]'))">
-        🟢 Sheets Conectado
-      </button>
       <button class="btn btn-primary" onclick="openModal('novoOrcamento')">
         ＋ Novo Orçamento
       </button>
@@ -1378,60 +1375,93 @@
       <div class="two-col">
         <div>
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">Conexão Google Sheets</div></div>
-            <div style="padding:20px">
-              <div class="sheets-card">
-                <div class="sheets-icon">📗</div>
-                <div class="sheets-info">
-                  <div class="sheets-name">ObraFácil — Master</div>
-                  <div class="sheets-meta">Atualizado há 3 min · 87 linhas</div>
-                </div>
-                <div class="connected-dot"></div>
+            <div class="panel-header"><div class="panel-title">📤 Exportar para Google Sheets</div></div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+
+              <div style="background:var(--bg3);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);line-height:1.7">
+                Exporte seus dados como <strong style="color:var(--text)">arquivo CSV</strong> e abra diretamente no Google Sheets.<br>
+                <span style="color:var(--accent)">Sheets → Arquivo → Importar → Fazer upload</span>
               </div>
 
-              <div class="form-group mb-4 mt-3">
-                <label>ID da Planilha</label>
-                <input id="sheetsId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" style="font-family:'DM Mono',monospace;font-size:12px;">
+              <button class="btn btn-primary w-full" onclick="exportCSVOrcamentos()">
+                📊 Exportar Orçamentos (.csv)
+              </button>
+              <button class="btn btn-ghost w-full" onclick="exportCSVComprovantes()">
+                🧾 Exportar Comprovantes (.csv)
+              </button>
+              <button class="btn btn-ghost w-full" onclick="exportCSVCompleto()">
+                📦 Exportar Tudo em 1 arquivo
+              </button>
+
+              <div style="border-top:1px solid var(--border);padding-top:12px">
+                <button class="btn btn-ghost w-full" onclick="window.open('https://sheets.new','_blank')">
+                  🔗 Abrir Google Sheets ↗
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel mt-4">
+            <div class="panel-header"><div class="panel-title">📅 Exportar para Google Agenda</div></div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+
+              <div style="background:var(--bg3);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);line-height:1.7">
+                Exporte seus serviços como <strong style="color:var(--text)">arquivo ICS</strong> e importe no Google Calendar.<br>
+                <span style="color:var(--accent)">Calendar → Configurações → Importar</span>
               </div>
 
-              <div class="form-group mb-4">
-                <label>Aba dos Orçamentos</label>
-                <input placeholder="Orçamentos" value="Orçamentos">
-              </div>
+              <button class="btn btn-primary w-full" onclick="exportICS('prazo')">
+                🔔 Exportar Prazos (.ics)
+              </button>
+              <button class="btn btn-ghost w-full" onclick="exportICS('inicio')">
+                ▶️ Exportar Datas de Início (.ics)
+              </button>
+              <button class="btn btn-ghost w-full" onclick="exportICS('ambos')">
+                📦 Exportar Tudo (.ics)
+              </button>
 
-              <div class="form-group mb-4">
-                <label>Aba dos Comprovantes</label>
-                <input placeholder="Comprovantes" value="Comprovantes">
+              <div style="border-top:1px solid var(--border);padding-top:12px">
+                <button class="btn btn-ghost w-full" onclick="window.open('https://calendar.google.com','_blank')">
+                  🔗 Abrir Google Agenda ↗
+                </button>
               </div>
-
-              <button class="btn btn-green w-full mt-2" onclick="testSheets()">🔄 Testar Conexão</button>
-              <button class="btn btn-primary w-full mt-2" onclick="syncNow()">⚡ Sincronizar Agora</button>
             </div>
           </div>
         </div>
 
         <div>
           <div class="panel">
+            <div class="panel-header"><div class="panel-title">💾 Backup dos Dados</div></div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+              <div style="background:var(--bg3);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);line-height:1.7">
+                Seus dados são salvos automaticamente no navegador.<br>
+                Faça backup em <strong style="color:var(--text)">JSON</strong> para não perder nada.
+              </div>
+              <button class="btn btn-green w-full" onclick="exportBackup()">
+                ⬇️ Baixar Backup (.json)
+              </button>
+              <div style="position:relative">
+                <button class="btn btn-ghost w-full" onclick="document.getElementById('importFile').click()">
+                  ⬆️ Restaurar Backup (.json)
+                </button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
+              </div>
+              <div style="border-top:1px solid var(--border);padding-top:12px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">
+                <div style="margin-bottom:4px">💾 Auto-save: <span style="color:var(--green)">Ativo</span></div>
+                <div id="lastSaveInfo">Último save: —</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel mt-4">
             <div class="panel-header"><div class="panel-title">Estrutura da Planilha</div></div>
             <div style="padding:20px">
               <div style="font-family:'DM Mono',monospace;font-size:11px;background:var(--bg3);border-radius:8px;padding:14px;line-height:2;">
                 <div style="color:var(--accent);margin-bottom:4px">// Aba: Orçamentos</div>
-                <div style="color:var(--green)">ID | Obra | Cliente | Orçado | Gasto | Status | Data</div>
+                <div style="color:var(--green)">ID | Obra | Cliente | Orçado | Gasto | Status | Prazo</div>
                 <br>
                 <div style="color:var(--accent);margin-bottom:4px">// Aba: Comprovantes</div>
-                <div style="color:var(--blue)">ID | Arquivo | Loja | Data | Valor | Orçamento_ID</div>
-                <br>
-                <div style="color:var(--accent);margin-bottom:4px">// Aba: Resumo (auto-gerado)</div>
-                <div style="color:var(--muted)">Total_Gasto | Qtd_Comprovantes | Alertas</div>
-              </div>
-
-              <div class="mt-4">
-                <button class="btn btn-ghost w-full" onclick="showToast('📋','Template copiado!','Cole no seu Google Sheets')">
-                  📋 Copiar Fórmulas do Template
-                </button>
-                <button class="btn btn-ghost w-full mt-2" onclick="showToast('📗','Abrindo Sheets...','')">
-                  🔗 Abrir no Google Sheets
-                </button>
+                <div style="color:var(--blue)">ID | Arquivo | Loja | Data | Valor | Orçamento</div>
               </div>
             </div>
           </div>
@@ -1439,16 +1469,14 @@
           <div class="panel mt-4">
             <div class="panel-header"><div class="panel-title">Histórico de Sync</div></div>
             <table>
-              <thead><tr><th>Quando</th><th>Tipo</th><th>Linhas</th></tr></thead>
+              <thead><tr><th>Quando</th><th>Tipo</th><th>Itens</th></tr></thead>
               <tbody id="syncLog">
-                <tr><td class="mono text-sm">Há 3 min</td><td><span class="badge badge-green">Sync</span></td><td>+2</td></tr>
-                <tr><td class="mono text-sm">Há 1h</td><td><span class="badge badge-blue">Upload</span></td><td>+5</td></tr>
               </tbody>
             </table>
           </div>
-        </div>
       </div>
     </div>
+    </div><!-- /page-planilhas -->
 
     <!-- ===== AGENDA ===== -->
     <div class="page" id="page-agenda">
@@ -1475,7 +1503,6 @@
             <option>Elétrica Geral</option>
             <option>Banheiro Suite</option>
           </select>
-          <button class="btn btn-ghost" id="gcalSyncBtn" onclick="openGCalSyncModal()" style="font-size:12px;border-color:rgba(77,166,255,0.3);color:var(--blue)">
             📅 Google Agenda
           </button>
           <button class="btn btn-primary" onclick="openModal('novoServico')">＋ Novo Serviço</button>
@@ -1522,15 +1549,16 @@
     </div>
 
     <!-- ===== CONFIG ===== -->
-
     <div class="page" id="page-config">
+
       <div class="two-col">
         <div class="panel">
-          <div class="panel-header"><div class="panel-title">IA & Extração</div></div>
+          <div class="panel-header"><div class="panel-title">🤖 IA & Extração</div></div>
           <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
             <div class="form-group">
               <label>API Key Claude (Anthropic)</label>
-              <input type="password" id="claudeKey" placeholder="sk-ant-..." value="sk-ant-demo-key">
+              <input type="password" id="claudeKey" placeholder="sk-ant-...">
+              <div class="text-sm text-muted mt-1">Necessária para escanear comprovantes com IA</div>
             </div>
             <div class="form-group">
               <label>Campos para extrair</label>
@@ -1542,124 +1570,19 @@
                 <label style="font-size:13px;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center;"><input type="checkbox"> CNPJ da loja</label>
               </div>
             </div>
-            <div class="form-group">
-              <label>Padrão de renomeação</label>
-              <input value="YYYY-MM-DD_NomeLoja_Valor" placeholder="YYYY-MM-DD_NomeLoja">
-              <div class="text-sm text-muted mt-1">Ex: 2025-01-15_LeröyMerlin_R$423.jpg</div>
-            </div>
+            <button class="btn btn-primary" onclick="saveClaudeKey()">💾 Salvar API Key</button>
           </div>
         </div>
 
         <div class="panel">
-          <div class="panel-header"><div class="panel-title">Google Cloud</div></div>
-          <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
-            <div class="form-group">
-              <label>Client ID</label>
-              <input id="gclientId" placeholder="xxxxx.apps.googleusercontent.com" style="font-family:'DM Mono',monospace;font-size:12px;">
+          <div class="panel-header"><div class="panel-title">📤 Exportação Rápida</div></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+            <div style="background:var(--bg3);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);line-height:1.7">
+              Atalhos para exportar seus dados sem sair das configurações.
             </div>
-            <div class="form-group">
-              <label>API Key Google</label>
-              <input type="password" id="gapiKey" placeholder="AIzaSy...">
-            </div>
-            <div class="form-group">
-              <label>Drive Folder ID (comprovantes)</label>
-              <input placeholder="1BxiMVs0XRA5nFMdKvBd..." style="font-family:'DM Mono',monospace;font-size:12px;">
-            </div>
-            <button class="btn btn-primary" onclick="saveGoogleConfig()">
-              💾 Salvar Configurações
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Google Calendar Config -->
-      <div class="panel mt-4" style="margin-top:20px">
-        <div class="panel-header">
-          <div class="panel-title">📅 Integração Google Agenda</div>
-          <div id="gcalStatusBadge" class="badge badge-yellow">⚡ Não conectado</div>
-        </div>
-        <div style="padding:24px">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:24px">
-
-            <!-- Step 1 -->
-            <div class="gcal-step" id="step1">
-              <div class="gcal-step-num">1</div>
-              <div class="gcal-step-title">Configurar Google Cloud</div>
-              <div class="gcal-step-desc">Ative a Calendar API e adicione o Client ID acima</div>
-              <a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" class="btn btn-ghost mt-2" style="font-size:12px;width:100%;justify-content:center">Abrir Console ↗</a>
-            </div>
-
-            <!-- Step 2 -->
-            <div class="gcal-step" id="step2">
-              <div class="gcal-step-num">2</div>
-              <div class="gcal-step-title">Autorizar Acesso</div>
-              <div class="gcal-step-desc">Faça login com Google para permitir leitura/escrita na agenda</div>
-              <button class="btn btn-primary mt-2" style="font-size:12px;width:100%;justify-content:center" onclick="authorizeGCal()">
-                🔑 Autorizar Google Agenda
-              </button>
-            </div>
-
-            <!-- Step 3 -->
-            <div class="gcal-step" id="step3">
-              <div class="gcal-step-num">3</div>
-              <div class="gcal-step-title">Sincronizar Serviços</div>
-              <div class="gcal-step-desc">Exporte todos os serviços como eventos na sua agenda</div>
-              <button class="btn btn-ghost mt-2" style="font-size:12px;width:100%;justify-content:center" id="syncAllGcalBtn" onclick="syncAllToGCal()" disabled>
-                📤 Sync Todos
-              </button>
-            </div>
-          </div>
-
-          <!-- Calendar selector -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:20px;border-top:1px solid var(--border)">
-            <div class="form-group">
-              <label>Calendário de destino</label>
-              <select id="gcalTarget">
-                <option value="primary">📅 Agenda Principal (primary)</option>
-                <option value="obrafacil">🏗 ObraFácil (criar novo)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Cor dos eventos</label>
-              <select id="gcalColor">
-                <option value="1">🔵 Azul Pavão</option>
-                <option value="2">🟢 Sálvia</option>
-                <option value="3">🟣 Uva</option>
-                <option value="5" selected>🟡 Banana</option>
-                <option value="6">🔴 Tomate</option>
-                <option value="10">🟢 Manjericão</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Lembrete padrão (minutos antes)</label>
-              <select id="gcalReminder">
-                <option value="0">Sem lembrete</option>
-                <option value="30">30 minutos</option>
-                <option value="60" selected>1 hora</option>
-                <option value="1440">1 dia antes</option>
-                <option value="2880">2 dias antes</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>O que exportar</label>
-              <select id="gcalExportType">
-                <option value="prazo">Somente prazos</option>
-                <option value="ambos" selected>Início e prazo</option>
-                <option value="inicio">Somente início</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Token display -->
-          <div id="gcalTokenInfo" style="display:none;margin-top:16px;padding:12px;background:rgba(45,224,139,0.06);border:1px solid rgba(45,224,139,0.2);border-radius:10px">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="font-size:20px">✅</span>
-              <div>
-                <div style="font-weight:600;font-size:13px;color:var(--green)">Google Agenda Conectada</div>
-                <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace" id="gcalTokenDetail">Token ativo · Expira em 60 min</div>
-              </div>
-              <button class="btn btn-ghost" style="font-size:11px;margin-left:auto" onclick="revokeGCal()">Desconectar</button>
-            </div>
+            <button class="btn btn-ghost w-full" onclick="exportCSVCompleto()">📦 Exportar Tudo (.csv)</button>
+            <button class="btn btn-ghost w-full" onclick="exportICS('ambos')">📅 Exportar Agenda (.ics)</button>
+            <button class="btn btn-green w-full" onclick="exportBackup()">⬇️ Backup Completo (.json)</button>
           </div>
         </div>
       </div>
@@ -1847,127 +1770,12 @@
     <div class="modal-body" id="detalheBody"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="detalheDeleteBtn">🗑 Excluir</button>
-      <button class="btn btn-ghost" onclick="openGCalForService(editingServiceId)" id="detalheGCalBtn" style="color:var(--blue);border-color:rgba(77,166,255,0.3)">📅 Google Agenda</button>
       <button class="btn btn-ghost" onclick="closeModal('detalheServico')">Fechar</button>
       <button class="btn btn-primary" id="detalheSaveBtn">💾 Salvar</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: Google Calendar Sync -->
-<div class="modal-overlay" id="modal-gcalSync">
-  <div class="modal" style="width:640px">
-    <div class="modal-header">
-      <div class="modal-title">📅 Sincronizar com Google Agenda</div>
-      <button class="modal-close" onclick="closeModal('gcalSync')">✕</button>
-    </div>
-    <div class="modal-body">
-
-      <!-- Auth state: NOT connected -->
-      <div id="gcalNotConnected">
-        <div style="background:rgba(77,166,255,0.07);border:1px solid rgba(77,166,255,0.2);border-radius:12px;padding:20px;text-align:center;margin-bottom:20px">
-          <div style="font-size:36px;margin-bottom:10px">📅</div>
-          <div style="font-weight:700;font-size:15px;margin-bottom:6px">Conecte sua Google Agenda</div>
-          <div style="color:var(--muted);font-size:13px;margin-bottom:16px">Autorize o ObraFácil a criar e atualizar eventos na sua agenda do Google</div>
-          <button class="btn btn-primary" onclick="authorizeGCal()" style="margin:0 auto">
-            🔑 Autorizar com Google
-          </button>
-          <div style="font-size:11px;color:var(--muted);margin-top:12px">
-            Permissões solicitadas: <span style="color:var(--blue)">calendar.events</span> · <span style="color:var(--blue)">calendar.readonly</span>
-          </div>
-        </div>
-        <div style="font-size:12px;color:var(--muted);padding:12px;background:var(--bg3);border-radius:8px;line-height:1.8">
-          <strong style="color:var(--text)">📋 Pré-requisitos:</strong><br>
-          1. Adicione o <strong>Client ID</strong> do Google Cloud nas Configurações<br>
-          2. Ative a <strong>Calendar API</strong> no Google Cloud Console<br>
-          3. Adicione <code style="background:var(--bg2);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace">http://localhost</code> e seu domínio como origens autorizadas
-        </div>
-      </div>
-
-      <!-- Auth state: CONNECTED -->
-      <div id="gcalConnected" style="display:none">
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(45,224,139,0.07);border:1px solid rgba(45,224,139,0.2);border-radius:10px;margin-bottom:20px">
-          <span style="font-size:22px">✅</span>
-          <div style="flex:1">
-            <div style="font-weight:600;color:var(--green)">Google Agenda conectada</div>
-            <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace" id="gcalConnectedUser"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ffcf0f1ebfedff8f2fef6f3b1fcf0f2">[email&#160;protected]</a></div>
-          </div>
-          <button class="btn btn-ghost" style="font-size:11px" onclick="revokeGCal()">Desconectar</button>
-        </div>
-
-        <!-- Options -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
-          <div class="form-group">
-            <label>Exportar</label>
-            <select id="modalExportType">
-              <option value="ambos" selected>Início e prazo</option>
-              <option value="prazo">Somente prazos</option>
-              <option value="inicio">Somente início</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Lembrete</label>
-            <select id="modalReminder">
-              <option value="0">Sem lembrete</option>
-              <option value="30">30 min antes</option>
-              <option value="60" selected>1 hora antes</option>
-              <option value="1440">1 dia antes</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Filtrar por status</label>
-            <select id="modalFilterStatus">
-              <option value="todos">Todos os serviços</option>
-              <option value="pendentes" selected>Somente pendentes</option>
-              <option value="andamento">Somente em andamento</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Calendário</label>
-            <select id="modalCalTarget">
-              <option value="primary">📅 Agenda principal</option>
-              <option value="obrafacil">🏗 ObraFácil (dedicado)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Preview list -->
-        <div class="panel-header" style="padding:0;margin-bottom:12px">
-          <div class="panel-title" style="font-size:13px">Prévia dos eventos a exportar</div>
-          <button class="btn btn-ghost" style="font-size:11px" onclick="refreshGCalPreview()">↻ Atualizar</button>
-        </div>
-        <div id="gcalEventPreview" style="max-height:280px;overflow-y:auto;padding-right:4px"></div>
-
-        <!-- Sync log -->
-        <div id="gcalSyncLogWrap" style="display:none;margin-top:16px">
-          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">Log de sincronização</div>
-          <div id="gcalSyncLog" style="background:var(--bg3);border-radius:8px;padding:10px 14px;max-height:120px;overflow-y:auto"></div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer" id="gcalModalFooter">
-      <button class="btn btn-ghost" onclick="closeModal('gcalSync')">Fechar</button>
-      <button class="btn btn-primary" id="gcalExportBtn" onclick="exportAllToGCal()" style="display:none">
-        📤 Exportar para Google Agenda
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: Single event preview -->
-<div class="modal-overlay" id="modal-gcalEvent">
-  <div class="modal" style="width:480px">
-    <div class="modal-header">
-      <div class="modal-title">📅 Enviar para Google Agenda</div>
-      <button class="modal-close" onclick="closeModal('gcalEvent')">✕</button>
-    </div>
-    <div class="modal-body" id="gcalEventBody"></div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('gcalEvent')">Cancelar</button>
-      <button class="btn btn-primary" id="gcalEventConfirmBtn">📅 Criar Evento</button>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL DETALHES ORÇAMENTO -->
 <div class="modal-overlay" id="modal-detalheOrcamento">
@@ -2042,6 +1850,13 @@ function renderAll() {
   renderCategories();
 }
 
+
+function saveClaudeKey() {
+  const key = document.getElementById('claudeKey')?.value?.trim();
+  if (!key) { showToast('⚠️','Campo vazio','Digite sua API Key'); return; }
+  try { localStorage.setItem('assistente_claudekey', key); } catch(e) {}
+  showToast('✅','API Key salva!','Usada para escanear comprovantes');
+}
 
 // ========= LOGIN =========
 // ========= PASSWORD PROTECTION — versão robusta =========
@@ -2273,7 +2088,7 @@ function pwdStrengthMeter(inputId, barId, lblId) {
 }
 
 function doLogout() {
-  if (!confirm('Sair do ObraFácil?')) return;
+  if (!confirm('Sair do Assistente?')) return;
   clearSession();
   document.getElementById('appShell').style.display    = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
@@ -2311,14 +2126,11 @@ function doLogin() { checkPassword(); }
 
 // ========= INIT =========
 function initApp() {
-  loadState();
-  // Restaurar configs salvas
   try {
-    const savedClient = localStorage.getItem('obrafacil_gclient');
-    const savedKey    = localStorage.getItem('obrafacil_gapikey');
-    if (savedClient) { GCAL.clientId = savedClient; const el = document.getElementById('gclientId'); if(el) el.value = savedClient; }
-    if (savedKey)    { GCAL.apiKey   = savedKey;    const el = document.getElementById('gapiKey');   if(el) el.value = savedKey; }
+    const savedKey = localStorage.getItem('assistente_claudekey');
+    if (savedKey) { const el = document.getElementById('claudeKey'); if(el) el.value = savedKey; }
   } catch(e) {}
+  loadState();
   renderDashboard();
   renderOrcamentos();
   renderComprovantes();
@@ -2339,7 +2151,7 @@ function showPage(id, el) {
   const titles = {
     dashboard:'Dashboard', orcamentos:'Orçamentos',
     comprovantes:'Comprovantes', upload:'Escanear com IA',
-    planilhas:'Google Planilhas', config:'Configurações',
+    planilhas:'Exportar Dados', config:'Configurações',
     agenda:'Agenda de Serviços'
   };
   document.getElementById('pageTitle').textContent = titles[id] || id;
@@ -2507,17 +2319,138 @@ function excluirComprovante(id) {
   showToast('🗑', 'Comprovante excluído', `"${c.arquivo}" removido`);
 }
 
-function exportCSV() {
-  const rows = [['Arquivo','Loja','Data','Valor','Orçamento']];
-  state.comprovantes.forEach(c => rows.push([c.arquivo, c.loja, c.data, c.valor, c.orcamento]));
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
+// ========= LOCAL STORAGE — AUTO SAVE =========
+const STORAGE_KEY = 'obrafacil_data';
+
+function saveToStorage() {
+  try {
+    const data = { orcamentos: state.orcamentos, comprovantes: state.comprovantes, servicos: state.servicos || [], savedAt: new Date().toISOString() };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const el = document.getElementById('lastSaveInfo');
+    if (el) el.textContent = 'Último save: ' + new Date().toLocaleTimeString('pt-BR');
+  } catch(e) {}
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.orcamentos)   state.orcamentos   = data.orcamentos;
+    if (data.comprovantes) state.comprovantes = data.comprovantes;
+    if (data.servicos)     state.servicos     = data.servicos;
+    return true;
+  } catch(e) { return false; }
+}
+
+// ========= DOWNLOAD HELPER =========
+function downloadFile(content, filename, type) {
+  const blob = new Blob(['\uFEFF' + content], { type });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'comprovantes.csv';
+  a.download = filename;
   a.click();
-  showToast('📥','CSV exportado!','Arquivo salvo com sucesso');
+  URL.revokeObjectURL(a.href);
 }
+
+// ========= EXPORTAR CSV =========
+function exportCSVOrcamentos() {
+  if (!state.orcamentos.length) { showToast('⚠️','Sem dados','Nenhum orçamento para exportar'); return; }
+  const header = ['ID','Obra','Cliente','Orçado (R$)','Gasto (R$)','Saldo (R$)','%','Status','Prazo'];
+  const rows = state.orcamentos.map(o => {
+    const saldo = o.orcado - o.gasto;
+    const pct = o.orcado > 0 ? Math.round((o.gasto/o.orcado)*100) : 0;
+    const status = {andamento:'Em andamento',concluido:'Concluído',alerta:'Acima do orçado',planejamento:'Planejamento'}[o.status]||o.status;
+    return [o.id,`"${o.obra}"`,`"${o.cliente}"`,o.orcado,o.gasto,saldo,pct+'%',status,o.prazo||''].join(',');
+  });
+  downloadFile([header.join(','),...rows].join('\n'), `obrafacil_orcamentos_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8');
+  showToast('📊','CSV exportado!',`${state.orcamentos.length} orçamentos — abra no Google Sheets`);
+  addSyncLog('Export Orçamentos', state.orcamentos.length);
+}
+
+function exportCSVComprovantes() {
+  if (!state.comprovantes.length) { showToast('⚠️','Sem dados','Nenhum comprovante para exportar'); return; }
+  const header = ['ID','Arquivo','Loja','Data','Valor','Orçamento'];
+  const rows = state.comprovantes.map(c => [c.id,`"${c.arquivo}"`,`"${c.loja}"`,c.data,`"${c.valor}"`,`"${c.orcamento}"`].join(','));
+  downloadFile([header.join(','),...rows].join('\n'), `obrafacil_comprovantes_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8');
+  showToast('🧾','CSV exportado!',`${state.comprovantes.length} comprovantes — abra no Google Sheets`);
+  addSyncLog('Export Comprovantes', state.comprovantes.length);
+}
+
+function exportCSVCompleto() {
+  if (!state.orcamentos.length && !state.comprovantes.length) { showToast('⚠️','Sem dados','Nenhum dado para exportar'); return; }
+  let csv = 'ORÇAMENTOS\nID,Obra,Cliente,Orçado (R$),Gasto (R$),Saldo (R$),%,Status,Prazo\n';
+  csv += state.orcamentos.map(o => {
+    const status = {andamento:'Em andamento',concluido:'Concluído',alerta:'Acima do orçado',planejamento:'Planejamento'}[o.status]||o.status;
+    return [o.id,`"${o.obra}"`,`"${o.cliente}"`,o.orcado,o.gasto,o.orcado-o.gasto,Math.round((o.gasto/Math.max(o.orcado,1))*100)+'%',status,o.prazo||''].join(',');
+  }).join('\n');
+  csv += '\n\nCOMPROVANTES\nID,Arquivo,Loja,Data,Valor,Orçamento\n';
+  csv += state.comprovantes.map(c => [c.id,`"${c.arquivo}"`,`"${c.loja}"`,c.data,`"${c.valor}"`,`"${c.orcamento}"`].join(',')).join('\n');
+  const total = state.orcamentos.reduce((s,o)=>s+(o.gasto||0),0);
+  csv += `\n\nRESUMO\nTotal Gasto,Qtd Orçamentos,Qtd Comprovantes,Em Alerta\n"R$${total.toLocaleString('pt-BR')}",${state.orcamentos.length},${state.comprovantes.length},${state.orcamentos.filter(o=>o.gasto>o.orcado).length}`;
+  downloadFile(csv, `obrafacil_completo_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8');
+  showToast('📦','Exportação completa!','Orçamentos + Comprovantes + Resumo');
+  addSyncLog('Export Completo', state.orcamentos.length + state.comprovantes.length);
+}
+
+// ========= EXPORTAR ICS (Google Calendar) =========
+function exportICS(tipo) {
+  const pad = n => String(n).padStart(2,'0');
+  const now = new Date();
+  const stamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}T${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}Z`;
+  const formatDate = str => { if (!str||str==='—') return null; const d=new Date(str); return isNaN(d)?null:`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`; };
+
+  const fontes = [...(state.servicos||[]), ...state.orcamentos.filter(o=>o.prazo&&o.prazo!=='—')];
+  const eventos = [];
+
+  fontes.forEach(item => {
+    const nome = item.nome || item.obra;
+    const desc = item.obra ? `Obra: ${item.obra}\\nCliente: ${item.cliente||''}` : `Cliente: ${item.cliente||''}`;
+    if ((tipo==='prazo'||tipo==='ambos') && item.prazo) {
+      const dt = formatDate(item.prazo);
+      if (dt) eventos.push(`BEGIN:VEVENT\nUID:${item.id}-prazo@obrafacil\nDTSTAMP:${stamp}\nDTSTART;VALUE=DATE:${dt}\nDTEND;VALUE=DATE:${dt}\nSUMMARY:🔔 ${nome} — PRAZO\nDESCRIPTION:${desc}\nBEGIN:VALARM\nTRIGGER:-PT1440M\nACTION:DISPLAY\nDESCRIPTION:Prazo amanhã: ${nome}\nEND:VALARM\nEND:VEVENT`);
+    }
+    if ((tipo==='inicio'||tipo==='ambos') && item.inicio) {
+      const dt = formatDate(item.inicio);
+      if (dt) eventos.push(`BEGIN:VEVENT\nUID:${item.id}-inicio@obrafacil\nDTSTAMP:${stamp}\nDTSTART;VALUE=DATE:${dt}\nDTEND;VALUE=DATE:${dt}\nSUMMARY:▶️ ${nome} — INÍCIO\nDESCRIPTION:${desc}\nEND:VEVENT`);
+    }
+  });
+
+  if (!eventos.length) { showToast('⚠️','Sem datas','Adicione prazos nos orçamentos ou serviços'); return; }
+  const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Assistente//PT\nX-WR-CALNAME:Assistente\n${eventos.join('\n')}\nEND:VCALENDAR`;
+  downloadFile(ics, `obrafacil_agenda_${tipo}_${new Date().toISOString().slice(0,10)}.ics`, 'text/calendar;charset=utf-8');
+  showToast('📅','ICS exportado!',`${eventos.length} evento(s) — importe no Google Agenda`);
+  addSyncLog('Export ICS', eventos.length);
+}
+
+// ========= BACKUP JSON =========
+function exportBackup() {
+  const backup = { versao:'1.0', exportadoEm:new Date().toISOString(), orcamentos:state.orcamentos, comprovantes:state.comprovantes, servicos:state.servicos||[] };
+  downloadFile(JSON.stringify(backup,null,2), `obrafacil_backup_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+  showToast('⬇️','Backup salvo!','Guarde o arquivo em local seguro');
+}
+
+function importBackup(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.orcamentos && !data.comprovantes) throw new Error('Formato inválido');
+      const dt = data.exportadoEm ? new Date(data.exportadoEm).toLocaleString('pt-BR') : 'data desconhecida';
+      if (!confirm(`Restaurar backup de ${dt}?\n\nIsso substituirá todos os dados atuais.`)) return;
+      if (data.orcamentos)   state.orcamentos   = data.orcamentos;
+      if (data.comprovantes) state.comprovantes = data.comprovantes;
+      if (data.servicos)     state.servicos     = data.servicos;
+      saveToStorage();
+      renderDashboard(); renderOrcamentos(); renderComprovantes(); renderChart(); renderCategories();
+      showToast('✅','Backup restaurado!',`${state.orcamentos.length} orçamentos · ${state.comprovantes.length} comprovantes`);
+    } catch(err) { showToast('❌','Erro ao importar','Arquivo inválido ou corrompido'); }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
 
 // ========= UPLOAD / IA =========
 function handleDrop(e) {
@@ -2579,7 +2512,7 @@ async function processWithAI(files) {
     let extracted = null;
 
     // Try Claude API if key available
-    if (apiKey && apiKey !== 'sk-ant-demo-key' && apiKey.startsWith('sk-ant')) {
+    if (apiKey && apiKey.startsWith('sk-ant')) {
       try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -2691,51 +2624,16 @@ function updateDashboardCharts() {
   renderCategories();
 }
 
-function testSheets() {
-  const sheetId = document.getElementById('sheetId')?.value?.trim();
-  if (!sheetId) {
-    showToast('⚠️', 'ID da planilha vazio', 'Preencha o ID do Google Sheets nas configurações');
-    return;
-  }
-  showToast('🔄', 'Testando conexão...', 'Verificando acesso ao Google Sheets');
-  setTimeout(() => showToast('✅', 'Conexão simulada OK!', 'Para conexão real, configure o Client ID e API Key'), 1200);
-}
 
-function syncNow() {
-  const sheetId = document.getElementById('sheetId')?.value?.trim();
-  if (!sheetId) {
-    showToast('⚠️', 'Configuração incompleta', 'Preencha o ID da planilha nas Configurações');
-    return;
-  }
-  showToast('⚡', 'Sincronizando...', 'Enviando dados ao Google Sheets');
-  addSyncLog('Sync manual');
-  setTimeout(() => showToast('✅', 'Sync concluído!', `${state.orcamentos.length} orçamentos · ${state.comprovantes.length} comprovantes`), 1500);
-}
 
-function exportToSheets(id) {
-  const o = state.orcamentos.find(x => x.id === id);
-  if (!o) return;
-  showToast('📤', 'Exportado!', `"${o.obra}" enviado ao Sheets`);
-  addSyncLog('Exportação');
-}
 
-function saveGoogleConfig() {
-  const clientId = document.getElementById('gclientId')?.value?.trim();
-  const apiKey   = document.getElementById('gapiKey')?.value?.trim();
-  if (clientId) GCAL.clientId = clientId;
-  if (apiKey)   GCAL.apiKey   = apiKey;
-  try {
-    if (clientId) localStorage.setItem('obrafacil_gclient', clientId);
-    if (apiKey)   localStorage.setItem('obrafacil_gapikey', apiKey);
-  } catch(e) {}
-  showToast('⚙️', 'Configurações salvas!', clientId ? 'Client ID e API Key armazenados' : 'Campos vazios — preencha para usar a integração real');
-}
-
-function addSyncLog(tipo) {
+function addSyncLog(tipo, qtd) {
   const log = document.getElementById('syncLog');
+  if (!log) return;
   const row = document.createElement('tr');
-  row.innerHTML = `<td class="mono text-sm">Agora</td><td><span class="badge badge-yellow">${tipo}</span></td><td>+1</td>`;
+  row.innerHTML = `<td class="mono text-sm">${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</td><td><span class="badge badge-yellow">${tipo}</span></td><td>+${qtd||1}</td>`;
   log.insertBefore(row, log.firstChild);
+  if (log.children.length > 10) log.removeChild(log.lastChild);
 }
 
 // ========= CHART =========
@@ -2988,7 +2886,6 @@ function buildKCard(s) {
   const totalTasks=(s.tasks||[]).length;
   const pctTasks=totalTasks>0?Math.round((doneTasks/totalTasks)*100):0;
   const isLate=s.status!=='concluido'&&diff<0;
-  const gcalSynced = GCAL.syncedEvents[`${s.id}_prazo`] || GCAL.syncedEvents[`${s.id}_inicio`];
   return `<div class="kanban-card" draggable="true"
     ondragstart="dragStart(event,${s.id})" ondragend="dragEnd(event)"
     onclick="openDetalhe(${s.id})"
@@ -3005,11 +2902,6 @@ function buildKCard(s) {
     <div class="kcard-footer">
       <div class="kcard-date ${dateClass}">📅 ${dateLabel}</div>
       <div style="display:flex;gap:5px;align-items:center">
-        <button class="kcard-gcal-btn ${gcalSynced?'synced':''}"
-          onclick="event.stopPropagation();openGCalForService(${s.id})"
-          title="${gcalSynced?'Ver no Google Agenda':'Adicionar ao Google Agenda'}">
-          ${gcalSynced?'✓':'+'} Agenda
-        </button>
         <span class="badge ${s.prio==='alta'?'badge-red':s.prio==='media'?'badge-yellow':'badge-green'}" style="font-size:9px;padding:2px 6px">${s.prio==='alta'?'Alta':s.prio==='media'?'Média':'Baixa'}</span>
       </div>
     </div>
@@ -3227,382 +3119,18 @@ function quickAdd(status){
 }
 
 // ========= GOOGLE CALENDAR INTEGRATION =========
-const GCAL = {
-  clientId: '',        // filled from config
-  apiKey: '',
-  scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
-  tokenClient: null,
-  accessToken: null,
-  tokenExpiry: null,
-  syncedEvents: {},    // svcId -> { eventId, url }
-  isAuthorized: false,
-};
+async 
 
-// Load Google Identity Services + GAPI
-function loadGoogleSDKs() {
-  if (document.getElementById('gapiScript')) return;
-  const s1 = document.createElement('script');
-  s1.id = 'gapiScript';
-  s1.src = 'https://apis.google.com/js/api.js';
-  s1.onload = () => gapi.load('client', initGapiClient);
-  document.head.appendChild(s1);
 
-  const s2 = document.createElement('script');
-  s2.src = 'https://accounts.google.com/gsi/client';
-  s2.onload = initGIS;
-  document.head.appendChild(s2);
-}
 
-async function initGapiClient() {
-  const key = document.getElementById('gapiKey')?.value || GCAL.apiKey;
-  if (!key) return;
-  await gapi.client.init({ apiKey: key, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'] });
-}
 
-function initGIS() {
-  const clientId = document.getElementById('gclientId')?.value || GCAL.clientId;
-  if (!clientId || !window.google?.accounts) return;
-  GCAL.tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: clientId,
-    scope: GCAL.scopes,
-    callback: handleGCalToken,
-  });
-}
 
-function handleGCalToken(resp) {
-  if (resp.error) {
-    showToast('❌', 'Erro de autorização', resp.error);
-    return;
-  }
-  GCAL.accessToken = resp.access_token;
-  GCAL.isAuthorized = true;
-  GCAL.tokenExpiry = new Date(Date.now() + (resp.expires_in - 60) * 1000);
-  gapi.client.setToken({ access_token: resp.access_token });
-  onGCalAuthorized();
-}
-
-function onGCalAuthorized() {
-  GCAL.isAuthorized = true;
-  // Update all UI states
-  document.getElementById('gcalNotConnected').style.display = 'none';
-  document.getElementById('gcalConnected').style.display = 'block';
-  document.getElementById('gcalExportBtn').style.display = 'flex';
-  document.getElementById('gcalTokenInfo').style.display = 'block';
-  document.getElementById('gcalStatusBadge').className = 'badge badge-green';
-  document.getElementById('gcalStatusBadge').textContent = '✅ Conectado';
-  document.getElementById('syncAllGcalBtn').disabled = false;
-  document.getElementById('gcalSyncBtn').style.borderColor = 'rgba(45,224,139,0.4)';
-  document.getElementById('gcalSyncBtn').style.color = 'var(--green)';
-  document.getElementById('gcalSyncBtn').textContent = '✅ Google Agenda';
-  const detail = `Token ativo · Expira ${GCAL.tokenExpiry?.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})||'em breve'}`;
-  if (document.getElementById('gcalTokenDetail')) document.getElementById('gcalTokenDetail').textContent = detail;
-  // Mark steps
-  document.getElementById('step1')?.classList.add('done');
-  document.getElementById('step2')?.classList.add('done');
-  document.getElementById('step3')?.classList.add('active');
-  refreshGCalPreview();
-  showToast('✅', 'Google Agenda conectada!', 'Pronto para sincronizar serviços');
-}
-
-function authorizeGCal() {
-  const clientId = document.getElementById('gclientId')?.value?.trim();
-  const apiKey   = document.getElementById('gapiKey')?.value?.trim();
-
-  // DEMO MODE: simulate connection when no real credentials
-  if (!clientId || !apiKey) {
-    showToast('ℹ️', 'Modo demonstração', 'Simulando conexão — adicione Client ID e API Key para conexão real');
-    setTimeout(() => {
-      GCAL.isAuthorized = true;
-      GCAL.accessToken = 'demo-token';
-      GCAL.tokenExpiry = new Date(Date.now() + 3600000);
-      // Show demo connected user
-      const el = document.getElementById('gcalConnectedUser');
-      if (el) el.textContent = 'conta@gmail.com (modo demo)';
-      onGCalAuthorized();
-    }, 1000);
-    return;
-  }
-
-  GCAL.clientId = clientId;
-  GCAL.apiKey = apiKey;
-  loadGoogleSDKs();
-  if (!GCAL.tokenClient) {
-    setTimeout(() => { initGIS(); setTimeout(() => GCAL.tokenClient?.requestAccessToken(), 600); }, 600);
-  } else {
-    GCAL.tokenClient.requestAccessToken();
-  }
-}
-
-function revokeGCal() {
-  GCAL.isAuthorized = false;
-  GCAL.accessToken = null;
-  GCAL.syncedEvents = {};
-  if (window.google?.accounts?.oauth2 && GCAL.accessToken) {
-    google.accounts.oauth2.revoke(GCAL.accessToken);
-  }
-  document.getElementById('gcalNotConnected').style.display = 'block';
-  document.getElementById('gcalConnected').style.display = 'none';
-  document.getElementById('gcalExportBtn').style.display = 'none';
-  document.getElementById('gcalTokenInfo').style.display = 'none';
-  document.getElementById('gcalStatusBadge').className = 'badge badge-yellow';
-  document.getElementById('gcalStatusBadge').textContent = '⚡ Não conectado';
-  document.getElementById('syncAllGcalBtn').disabled = true;
-  document.getElementById('gcalSyncBtn').style.borderColor = 'rgba(77,166,255,0.3)';
-  document.getElementById('gcalSyncBtn').style.color = 'var(--blue)';
-  document.getElementById('gcalSyncBtn').textContent = '📅 Google Agenda';
-  ['step1','step2','step3'].forEach(id => document.getElementById(id)?.classList.remove('done','active'));
-  showToast('🔓', 'Desconectado', 'Google Agenda desvinculada');
-}
-
-function saveGoogleConfig() {
-  const clientId = document.getElementById('gclientId')?.value?.trim();
-  const apiKey   = document.getElementById('gapiKey')?.value?.trim();
-  const claudeKey = document.getElementById('claudeKey')?.value?.trim();
-  if (clientId) localStorage.setItem('obrafacil_gclient', clientId);
-  if (apiKey)   localStorage.setItem('obrafacil_gapikey', apiKey);
-  if (claudeKey) localStorage.setItem('obrafacil_claudekey', claudeKey);
-  showToast('✅', 'Configurações salvas!', 'Dados armazenados localmente');
-}
-
-// ========= OPEN SYNC MODAL =========
-function openGCalSyncModal() {
-  openModal('gcalSync');
-  if (GCAL.isAuthorized) refreshGCalPreview();
-}
-
-// ========= BUILD EVENT OBJECT =========
-function buildGCalEvent(svc, tipo) {
-  const color = document.getElementById('gcalColor')?.value || '5';
-  const reminder = parseInt(document.getElementById('gcalReminder')?.value || '60');
-  const prazoDate = svc.prazo; // YYYY-MM-DD
-  const inicioDate = svc.inicio;
-  const isDeadline = tipo === 'prazo';
-  const dateStr = isDeadline ? prazoDate : inicioDate;
-  const suffix = isDeadline ? ' — PRAZO' : ' — INÍCIO';
-  const colorMap = {'1':'Azul Pavão','2':'Sálvia','3':'Uva','5':'Banana','6':'Tomate','10':'Manjericão'};
-  const prioMap = { alta:'🔴 ALTA', media:'🟡 MÉDIA', baixa:'🟢 BAIXA' };
-
-  const event = {
-    summary: `🏗 ${svc.nome}${suffix}`,
-    description: [
-      `Obra: ${svc.obra}`,
-      svc.resp ? `Responsável: ${svc.resp}` : '',
-      svc.desc ? `\n${svc.desc}` : '',
-      svc.tasks?.length ? `\nSubtarefas:\n${svc.tasks.map((t,i)=>`${svc.tasksDone?.[i]?'✅':'☐'} ${t}`).join('\n')}` : '',
-      `\nPrioridade: ${prioMap[svc.prio]||svc.prio}`,
-      `\n— Criado pelo ObraFácil`,
-    ].filter(Boolean).join('\n'),
-    start: { date: dateStr },
-    end:   { date: dateStr },
-    colorId: color,
-    reminders: reminder > 0 ? {
-      useDefault: false,
-      overrides: [{ method: 'popup', minutes: reminder }],
-    } : { useDefault: false, overrides: [] },
-    extendedProperties: {
-      private: { obrafacil: 'true', svcId: String(svc.id), tipo }
-    }
-  };
-  return event;
-}
-
-// ========= PREVIEW LIST =========
-function getServicosToExport() {
-  const filterStatus = document.getElementById('modalFilterStatus')?.value || 'pendentes';
-  return state.servicos.filter(s => {
-    if (filterStatus === 'pendentes') return s.status !== 'concluido';
-    if (filterStatus === 'andamento') return s.status === 'andamento';
-    return true;
-  });
-}
-
-function refreshGCalPreview() {
-  const container = document.getElementById('gcalEventPreview');
-  if (!container) return;
-  const exportType = document.getElementById('modalExportType')?.value || 'ambos';
-  const servicos = getServicosToExport();
-
-  if (!servicos.length) {
-    container.innerHTML = '<div class="empty-state" style="padding:30px"><div class="empty-state-icon">🎉</div><div class="empty-state-title">Nenhum serviço pendente</div></div>';
-    return;
-  }
-
-  const events = [];
-  servicos.forEach(s => {
-    if (exportType === 'ambos' || exportType === 'inicio') events.push({ svc: s, tipo: 'inicio' });
-    if (exportType === 'ambos' || exportType === 'prazo')  events.push({ svc: s, tipo: 'prazo' });
-  });
-
-  container.innerHTML = events.map(({ svc, tipo }) => {
-    const isSynced = GCAL.syncedEvents[`${svc.id}_${tipo}`];
-    const dateStr = tipo === 'prazo' ? formatPrazo(svc.prazo) : formatPrazo(svc.inicio);
-    const label = tipo === 'prazo' ? '📍 Prazo' : '🟢 Início';
-    return `<div class="gcal-event-preview ${isSynced ? 'synced' : ''}">
-      <div class="gcal-event-icon">${tipo === 'prazo' ? '🔔' : '▶️'}</div>
-      <div class="gcal-event-body">
-        <div class="gcal-event-title">🏗 ${svc.nome} — ${tipo === 'prazo' ? 'PRAZO' : 'INÍCIO'}</div>
-        <div class="gcal-event-meta">${label}: ${dateStr} · ${svc.obra} · ${svc.resp||'Sem responsável'}</div>
-      </div>
-      <div class="gcal-event-status">
-        ${isSynced
-          ? `<span class="badge badge-green" style="font-size:10px">✓ Sincronizado</span>`
-          : `<span class="badge badge-blue" style="font-size:10px">Pendente</span>`}
-      </div>
-    </div>`;
-  }).join('');
-}
 
 // ========= EXPORT ALL =========
-async function exportAllToGCal() {
-  if (!GCAL.isAuthorized) { authorizeGCal(); return; }
-  const exportType = document.getElementById('modalExportType')?.value || 'ambos';
-  const calTarget  = document.getElementById('modalCalTarget')?.value || 'primary';
-  const servicos = getServicosToExport();
+async 
+async 
 
-  const logWrap = document.getElementById('gcalSyncLogWrap');
-  const logEl   = document.getElementById('gcalSyncLog');
-  logWrap.style.display = 'block';
-  logEl.innerHTML = '';
-
-  const exportBtn = document.getElementById('gcalExportBtn');
-  exportBtn.disabled = true;
-  exportBtn.textContent = '⏳ Exportando...';
-
-  let ok = 0, errs = 0;
-
-  for (const svc of servicos) {
-    const tipos = exportType === 'ambos' ? ['inicio','prazo'] : [exportType];
-    for (const tipo of tipos) {
-      const key = `${svc.id}_${tipo}`;
-      if (GCAL.syncedEvents[key]) {
-        appendSyncLog(logEl, svc.nome, tipo, 'skip');
-        continue;
-      }
-      await new Promise(r => setTimeout(r, 150)); // throttle
-      const success = await createGCalEvent(svc, tipo, calTarget);
-      if (success) { ok++; appendSyncLog(logEl, svc.nome, tipo, 'ok'); }
-      else         { errs++; appendSyncLog(logEl, svc.nome, tipo, 'error'); }
-    }
-  }
-
-  exportBtn.disabled = false;
-  exportBtn.textContent = '📤 Exportar para Google Agenda';
-  refreshGCalPreview();
-  renderKanban();
-  showToast(errs === 0 ? '✅' : '⚠️',
-    `${ok} evento${ok!==1?'s':''} criado${ok!==1?'s':''}!`,
-    errs > 0 ? `${errs} erro(s) — verifique as permissões` : 'Google Agenda atualizada');
-  addSyncLog('Google Calendar');
-}
-
-async function createGCalEvent(svc, tipo, calId) {
-  const key = `${svc.id}_${tipo}`;
-  const event = buildGCalEvent(svc, tipo);
-
-  // REAL API call (when authorized with real token)
-  if (GCAL.accessToken && GCAL.accessToken !== 'demo-token' && window.gapi?.client?.calendar) {
-    try {
-      const resp = await gapi.client.calendar.events.insert({ calendarId: calId || 'primary', resource: event });
-      GCAL.syncedEvents[key] = { eventId: resp.result.id, url: resp.result.htmlLink };
-      return true;
-    } catch (e) {
-      console.error('GCal API error:', e);
-      return false;
-    }
-  }
-
-  // DEMO MODE: simulate success
-  await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
-  const demoId = 'demo_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-  GCAL.syncedEvents[key] = {
-    eventId: demoId,
-    url: `https://calendar.google.com/calendar/event?eid=${demoId}`
-  };
-  return true;
-}
-
-function appendSyncLog(el, nome, tipo, status) {
-  const colors = { ok:'var(--green)', error:'var(--red)', skip:'var(--muted)' };
-  const icons  = { ok:'✓', error:'✗', skip:'—' };
-  const labels = { ok:'Criado', error:'Erro', skip:'Já sincronizado' };
-  const item = document.createElement('div');
-  item.className = 'sync-log-item';
-  item.innerHTML = `
-    <div class="sync-dot" style="background:${colors[status]}"></div>
-    <div style="flex:1;font-size:12px"><strong>${nome}</strong> <span style="color:var(--muted)">(${tipo === 'prazo' ? 'prazo' : 'início'})</span></div>
-    <div style="font-size:11px;color:${colors[status]};font-family:'DM Mono',monospace">${icons[status]} ${labels[status]}</div>`;
-  el.appendChild(item);
-  el.scrollTop = el.scrollHeight;
-}
-
-// ========= SINGLE EVENT (from card) =========
-function openGCalForService(svcId) {
-  if (!GCAL.isAuthorized) {
-    openModal('gcalSync');
-    return;
-  }
-  const svc = state.servicos.find(s => s.id === svcId);
-  if (!svc) return;
-
-  const synced1 = GCAL.syncedEvents[`${svcId}_inicio`];
-  const synced2 = GCAL.syncedEvents[`${svcId}_prazo`];
-
-  document.getElementById('gcalEventBody').innerHTML = `
-    <div style="margin-bottom:16px">
-      <div style="font-weight:700;font-size:15px;margin-bottom:4px">${svc.nome}</div>
-      <div style="font-size:12px;color:var(--muted)">🏗 ${svc.obra} · 👷 ${svc.resp||'—'}</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="gcal-event-preview ${synced1?'synced':''}">
-        <div class="gcal-event-icon">▶️</div>
-        <div class="gcal-event-body">
-          <div class="gcal-event-title">Evento de Início</div>
-          <div class="gcal-event-meta">📅 ${formatPrazo(svc.inicio)}</div>
-        </div>
-        ${synced1
-          ? `<a href="${synced1.url}" target="_blank" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;flex-shrink:0">Ver ↗</a>`
-          : `<button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;flex-shrink:0" onclick="createSingleEvent(${svcId},'inicio')">Criar</button>`}
-      </div>
-      <div class="gcal-event-preview ${synced2?'synced':''}">
-        <div class="gcal-event-icon">🔔</div>
-        <div class="gcal-event-body">
-          <div class="gcal-event-title">Evento de Prazo</div>
-          <div class="gcal-event-meta">📅 ${formatPrazo(svc.prazo)}</div>
-        </div>
-        ${synced2
-          ? `<a href="${synced2.url}" target="_blank" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;flex-shrink:0">Ver ↗</a>`
-          : `<button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;flex-shrink:0" onclick="createSingleEvent(${svcId},'prazo')">Criar</button>`}
-      </div>
-    </div>
-    <div style="margin-top:16px;padding:10px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--muted)">
-      Os eventos serão criados na sua <strong style="color:var(--text)">Agenda Principal</strong> do Google.
-    </div>`;
-
-  document.getElementById('gcalEventConfirmBtn').onclick = () => {
-    createSingleEvent(svcId, 'prazo');
-    createSingleEvent(svcId, 'inicio');
-    closeModal('gcalEvent');
-  };
-  document.getElementById('gcalEventConfirmBtn').textContent = '📅 Criar ambos os eventos';
-  openModal('gcalEvent');
-}
-
-async function createSingleEvent(svcId, tipo) {
-  const svc = state.servicos.find(s => s.id === svcId); if (!svc) return;
-  const success = await createGCalEvent(svc, tipo, 'primary');
-  if (success) {
-    showToast('📅', 'Evento criado!', `"${svc.nome}" adicionado à agenda`);
-    renderKanban();
-    if (document.getElementById('gcalEventBody')) openGCalForService(svcId);
-  } else {
-    showToast('❌', 'Erro ao criar evento', 'Verifique as permissões da API');
-  }
-}
-
-function syncAllToGCal() {
-  openModal('gcalSync');
-  setTimeout(() => exportAllToGCal(), 300);
-}
+async 
 
 // ========= PATCH buildKCard to include gcal button =========
 const _origBuildKCard = buildKCard;
